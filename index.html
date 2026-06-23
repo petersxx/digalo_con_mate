@@ -1311,9 +1311,8 @@ function fmt(n) { return CONFIG.moneda + ' ' + n.toLocaleString('es-PY'); }
 
 function stockTag(stock) {
   if (stock === null || stock === undefined) return '';
-  if (stock === 0)  return `<span class="stock-tag out">Sin stock</span>`;
-  if (stock <= 5)   return `<span class="stock-tag low">Últimas ${stock} unidades</span>`;
-  return `<span class="stock-tag ok">Disponible</span>`;
+  if (stock === 0) return `<span class="stock-tag out">Sin stock</span>`;
+  return `<span class="stock-tag ok">${stock} disponibles</span>`;
 }
 
 /*
@@ -1581,9 +1580,8 @@ function cardHTML(p) {
         <p class="product-name">${p.name}</p>
         <p class="product-price">${fmt(p.price)}</p>
         <p class="product-desc-short">${p.shortDesc || ''}</p>
-        ${stockTag(p.stock)}
-        <button class="add-to-cart-btn" ${p.stock === 0 ? 'disabled' : ''} onclick="event.stopPropagation();addToCart('${p.id}')">
-          ${p.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+        <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${p.id}')">
+          Agregar al carrito
         </button>
       </div>
     </div>`;
