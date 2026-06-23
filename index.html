@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dígalo con Mate — Tienda mateira</title>
+  <title>JAKAY'U — Tienda mateira</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -844,7 +844,7 @@
     </svg>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-    <h1 class="splash-title">Dígalo con <em>Mate</em></h1>
+    <h1 class="splash-title"><em>JAKAY'U</em></h1>
     <div class="splash-line"></div>
     <p class="splash-sub">Tienda mateira artesanal</p>
   </div>
@@ -860,7 +860,7 @@
       </div>
       <div class="logo-divider"></div>
       <div class="logo-text">
-        <h1>Dígalo con Mate</h1>
+        <h1>JAKAY'U</h1>
         <span>Tienda mateira artesanal</span>
       </div>
     </div>
@@ -878,12 +878,8 @@
 
 <!-- ── CATEGORY NAV ────────────────────────────────────────── -->
 <nav class="cat-nav" id="cat-nav">
-  <div class="cat-nav-inner">
-    <button class="cat-btn active" onclick="filterCat('all',this)">Todo</button>
-    <button class="cat-btn" onclick="filterCat('guampas',this)">Guampas</button>
-    <button class="cat-btn" onclick="filterCat('termos',this)">Termos</button>
-    <button class="cat-btn" onclick="filterCat('bombillas',this)">Bombillas</button>
-    <button class="cat-btn" onclick="filterCat('sets',this)">Sets & Combos</button>
+  <div class="cat-nav-inner" id="cat-nav-inner">
+    <!-- categorías cargadas dinámicamente desde Notion -->
   </div>
 </nav>
 
@@ -950,7 +946,7 @@
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">
-      <h3>Dígalo con Mate</h3>
+      <h3>JAKAY'U</h3>
       <p>Guampas · Termos · Bombillas · Sets</p>
     </div>
     <div class="footer-links">
@@ -965,142 +961,24 @@
 
 <script>
 /* ══════════════════════════════════════════════════════════
-   CONFIGURACIÓN — editá estos datos antes de publicar
+   CONFIGURACIÓN
 ══════════════════════════════════════════════════════════ */
 const CONFIG = {
   whatsappNumber: '595991230966',
-  banco:    'Banco Continental',
-  titular:  'Dígalo con Mate S.R.L.',
-  cuenta:   '0001-0123456-7',
-  alias:    'DIGALO.MATE',
-  ruc:      '80012345-6',
+  banco:    '',
+  titular:  '',
+  cuenta:   '',
+  alias:    '',
+  ruc:      '',
   moneda:   'Gs.',
+  notionProxy: '/api/notion',
 };
-
-/* ══════════════════════════════════════════════════════════
-   PRODUCTOS
-══════════════════════════════════════════════════════════ */
-const products = [
-  /* ── GUAMPAS ── */
-  {
-    id: 1, category: 'guampas',
-    img: './img/guampa-palo-santo.jpeg',
-    thumbs: ['./img/guampa-palo-santo.jpeg','./img/guampa-vapor.jpeg','./img/guampa-cuero-campo.jpeg'],
-    model: './models/guampa.glb',
-    name: 'Guampa Palo Santo Tradicional',
-    price: 85000, badge: 'Más vendido',
-    shortDesc: 'Madera nativa con aroma inconfundible.',
-    description: 'Guampa tallada a mano en madera de Palo Santo del Paraguay. Su característico aroma dulce y color oscuro la convierte en la preferida de los mateadores más exigentes. Resistente y de larga duración.',
-    features: ['Madera Palo Santo nativa','Tallada a mano','Capacidad 300 ml','Aro de alpaca incluido','Apta para mate amargo y tereré'],
-  },
-  {
-    id: 2, category: 'guampas',
-    img: './img/guampa-cuero.jpeg',
-    thumbs: ['./img/guampa-cuero.jpeg','./img/guampa-cuero-black.jpeg','./img/guampas-coleccion.jpeg'],
-    name: 'Guampa Cuero Bordada',
-    price: 120000, badge: 'Artesanal',
-    shortDesc: 'Cuero natural con bordados típicos.',
-    description: 'Guampa recubierta en cuero natural con bordados artesanales de diseños típicos paraguayos. Cada pieza es única, elaborada por artesanos locales. La opción ideal para regalar.',
-    features: ['Cuero natural curtido','Bordados artesanales únicos','Interior de madera curada','Capacidad 250 ml','Caja de presentación incluida'],
-  },
-  {
-    id: 3, category: 'guampas',
-    img: './img/guampa-alpaca.jpeg',
-    thumbs: ['./img/guampa-alpaca.jpeg','./img/guampa-cuero-black.jpeg','./img/guampas-coleccion.jpeg'],
-    name: 'Guampa Alpaca Premium',
-    price: 185000, badge: null,
-    shortDesc: 'Terminación en alpaca repujada.',
-    description: 'Guampa de madera con cintura y boca enchapada en alpaca repujada a mano. Diseño clásico y elegante, perfecta para quienes buscan calidad y distinción en cada mate.',
-    features: ['Madera nativa premium','Enchapado en alpaca repujada','Capacidad 350 ml','Con bombilla de alpaca','Estuche de cuero'],
-  },
-  {
-    id: 4, category: 'guampas',
-    img: './img/guampa-madera.jpeg',
-    thumbs: ['./img/guampa-madera.jpeg','./img/guampa-campo.jpeg','./img/guampa-cuero-campo.jpeg'],
-    name: 'Guampa Madera Natural',
-    price: 55000, badge: null,
-    shortDesc: 'Sencilla, resistente y económica.',
-    description: 'Guampa clásica torneada en madera nativa de la región. Perfecta para quienes se inician en el mundo del mate. Simple, resistente y de larga duración.',
-    features: ['Madera nativa regional','Torneada artesanalmente','Capacidad 280 ml','Liviana y resistente'],
-  },
-  /* ── TERMOS ── */
-  {
-    id: 5, category: 'termos',
-    img: './img/termo-inox.jpeg',
-    thumbs: ['./img/termo-inox.jpeg','./img/termo-lumilagro.jpeg','./img/set-completo.jpeg'],
-    name: 'Termo Acero Inox. 1 L',
-    price: 220000, badge: 'Top ventas',
-    shortDesc: 'Mantiene la temperatura 12 horas.',
-    description: 'Termo de acero inoxidable de doble pared al vacío. Mantiene el agua caliente hasta 12 horas y fría hasta 24 horas. Perfecto para jornadas largas, trabajo o salidas al campo.',
-    features: ['Acero inoxidable 304','Doble pared al vacío','12 h caliente / 24 h frío','Capacidad 1 litro','Libre de BPA'],
-  },
-  {
-    id: 6, category: 'termos',
-    img: './img/termo-stanley.jpeg',
-    thumbs: ['./img/termo-stanley.jpeg','./img/termo-stanley-rosa.jpeg','./img/termo-stanley-negro.jpeg'],
-    name: 'Termo Stanley Clásico 1.4 L',
-    price: 380000, badge: 'Premium',
-    shortDesc: 'El original. Resistente para toda la vida.',
-    description: 'El termo más icónico del mercado mateño. Stanley Clásico de 1.4 litros, resistente a cualquier aventura. Construcción en acero inoxidable y asa de quiebre.',
-    features: ['Acero inoxidable premium','Asa de quiebre resistente','+40 horas de temperatura','Tapa-mate incluida','Garantía de por vida'],
-  },
-  {
-    id: 7, category: 'termos',
-    img: './img/termo-lumilagro.jpeg',
-    thumbs: ['./img/termo-lumilagro.jpeg','./img/termo-inox.jpeg','./img/termo-stanley.jpeg'],
-    name: 'Termo Lumilagro 750 ml',
-    price: 145000, badge: null,
-    shortDesc: 'Clásico nacional a buen precio.',
-    description: 'Termo nacional Lumilagro con botón de servicio. Calidad probada por décadas, ideal para el uso diario en el trabajo o en casa. Fácil de usar y limpiar.',
-    features: ['Capacidad 750 ml','Botón de servicio','Tapa-vaso incluida','Repuestos disponibles en todo el país'],
-  },
-  /* ── BOMBILLAS ── */
-  {
-    id: 8, category: 'bombillas',
-    img: './img/bombilla-pico-loro.jpeg',
-    thumbs: ['./img/bombilla-pico-loro.jpeg','./img/guampa-palo-santo.jpeg','./img/guampa-madera.jpeg'],
-    name: 'Bombilla Alpaca Pico de Loro',
-    price: 45000, badge: null,
-    shortDesc: 'Filtra perfecto, dura años.',
-    description: 'Bombilla de alpaca con filtro pico de loro, ideal para yerba gruesa. El filtro cónico evita el paso de partículas, garantizando una experiencia limpia en cada cebada.',
-    features: ['Alpaca de alta calidad','Filtro pico de loro','Apta para lavavajillas','Largo 18 cm','No oxida'],
-  },
-  {
-    id: 9, category: 'bombillas',
-    img: './img/bombilla-cucharita.jpeg',
-    thumbs: ['./img/bombilla-cucharita.jpeg','./img/guampa-madera.jpeg','./img/guampa-cuero.jpeg'],
-    name: 'Bombilla Alpaca Cucharita',
-    price: 38000, badge: null,
-    shortDesc: 'La clásica de toda la vida.',
-    description: 'Bombilla cucharita de alpaca, la elección clásica del mateador paraguayo. Filtro en cucharita perforada, fácil de limpiar y muy duradera. Compatible con cualquier guampa.',
-    features: ['Alpaca resistente','Filtro cucharita perforada','Apta para lavavajillas','Largo 17 cm'],
-  },
-  /* ── SETS ── */
-  {
-    id: 10, category: 'sets',
-    img: './img/set-completo.jpeg',
-    thumbs: ['./img/set-completo.jpeg','./img/guampa-madera.jpeg','./img/termo-inox.jpeg'],
-    name: 'Set Matero Completo',
-    price: 280000, badge: '¡Oferta!',
-    shortDesc: 'Guampa + bombilla + termo. Todo listo.',
-    description: 'El kit perfecto para iniciarte o para regalar. Incluye guampa de madera natural, bombilla de alpaca cucharita, termo 750 ml y bolsita de yerba de cortesía. Todo en una caja presentación.',
-    features: ['Guampa Madera Natural','Bombilla Alpaca Cucharita','Termo 750 ml','Yerba de cortesía','Caja presentación'],
-  },
-  {
-    id: 11, category: 'sets',
-    img: './img/set-premium.jpeg',
-    thumbs: ['./img/set-premium.jpeg','./img/guampa-alpaca.jpeg','./img/termo-stanley.jpeg'],
-    name: 'Set Premium Regalería',
-    price: 490000, badge: 'Premium',
-    shortDesc: 'La opción de lujo para un regalo especial.',
-    description: 'Set de regalería premium con guampa de cuero bordada, bombilla alpaca pico de loro, termo Stanley 1.4 L y caja artesanal. El regalo perfecto para los grandes momentos.',
-    features: ['Guampa Cuero Bordada','Bombilla Alpaca Pico de Loro','Termo Stanley 1.4 L','Caja artesanal de madera','Tarjeta dedicatoria incluida'],
-  },
-];
 
 /* ══════════════════════════════════════════════════════════
    ESTADO
 ══════════════════════════════════════════════════════════ */
+let products = [];
+let categories = [];
 let cart = [];
 let currentFilter = 'all';
 let detailQty = 1;
@@ -1108,10 +986,9 @@ let detailQty = 1;
 /* ══════════════════════════════════════════════════════════
    UTILIDADES
 ══════════════════════════════════════════════════════════ */
-function fmt(n)        { return CONFIG.moneda + ' ' + n.toLocaleString('es-PY'); }
-function cartTotal()   { return cart.reduce((s,i) => s + i.price * i.qty, 0); }
-function cartCount()   { return cart.reduce((s,i) => s + i.qty, 0); }
-function catLabel(cat) { return {guampas:'Guampas',termos:'Termos',bombillas:'Bombillas',sets:'Sets & Combos'}[cat]||cat; }
+function fmt(n)      { return CONFIG.moneda + ' ' + n.toLocaleString('es-PY'); }
+function cartTotal() { return cart.reduce((s,i) => s + i.price * i.qty, 0); }
+function cartCount() { return cart.reduce((s,i) => s + i.qty, 0); }
 
 function toast(msg) {
   const el = document.getElementById('toast');
@@ -1145,35 +1022,49 @@ function filterCat(cat, btn) {
   renderProducts();
 }
 
+function renderCategoryNav() {
+  const nav = document.getElementById('cat-nav-inner');
+  const todoBtn = `<button class="cat-btn active" onclick="filterCat('all',this)">Todo</button>`;
+  const catBtns = categories.map(c =>
+    `<button class="cat-btn" onclick="filterCat('${c.slug}',this)">${c.name}</button>`
+  ).join('');
+  nav.innerHTML = todoBtn + catBtns;
+}
+
 function renderProducts() {
   const filtered = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
   let html = '';
   if (currentFilter === 'all') {
     const grouped = {};
-    filtered.forEach(p => { (grouped[p.category] = grouped[p.category]||[]).push(p); });
+    filtered.forEach(p => { (grouped[p.category] = grouped[p.category] || []).push(p); });
     for (const [cat, items] of Object.entries(grouped)) {
-      html += `<h2 class="section-title">${catLabel(cat)}</h2><div class="section-rule"></div>`;
+      const catName = categories.find(c => c.slug === cat)?.name || cat;
+      html += `<h2 class="section-title">${catName}</h2><div class="section-rule"></div>`;
       html += `<div class="products-grid">${items.map(cardHTML).join('')}</div>`;
     }
   } else {
     html = `<div class="products-grid">${filtered.map(cardHTML).join('')}</div>`;
   }
+  if (!html) html = `<p style="color:var(--muted);padding:40px 0;">No hay productos en esta categoría aún.</p>`;
   document.getElementById('products-container').innerHTML = html;
 }
 
 function cardHTML(p) {
+  const img = p.img
+    ? `<img src="${p.img}" alt="${p.name}" loading="lazy">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;">Sin imagen</div>`;
   return `
-    <div class="product-card" onclick="showPage('product',${p.id})">
+    <div class="product-card" onclick="showPage('product','${p.id}')">
       <div class="product-img">
         ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
-        <img src="${p.img}" alt="${p.name}" loading="lazy">
+        ${img}
       </div>
       <div class="product-info">
-        <p class="product-cat-tag">${catLabel(p.category)}</p>
+        <p class="product-cat-tag">${categories.find(c=>c.slug===p.category)?.name || p.category}</p>
         <p class="product-name">${p.name}</p>
         <p class="product-price">${fmt(p.price)}</p>
-        <p class="product-desc-short">${p.shortDesc}</p>
-        <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart(${p.id})">
+        <p class="product-desc-short">${p.shortDesc || ''}</p>
+        <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${p.id}')">
           Agregar al carrito
         </button>
       </div>
@@ -1191,23 +1082,21 @@ function renderProductDetail(id) {
   const has3D = !!p.model;
 
   const thumb3D = has3D ? `
-    <div class="thumb thumb-3d active" onclick="show3D(this)" title="Vista 3D" style="display:flex;align-items:center;justify-content:center;">
+    <div class="thumb thumb-3d ${!p.img ? 'active' : ''}" onclick="show3D(this)" title="Vista 3D" style="display:flex;align-items:center;justify-content:center;">
       <div class="t3d-icon">⬡</div>
       <div class="t3d-txt">3D</div>
     </div>` : '';
 
-  const thumbsHTML = p.thumbs.map((src, i) => `
-    <div class="thumb ${!has3D && i===0 ? 'active':''}" onclick="selectThumb(this,'${src}')">
-      <img src="${src}" alt="${p.name}" loading="lazy">
-    </div>`).join('');
+  const imgBlock = p.img
+    ? `<img src="${p.img}" alt="${p.name}" id="detail-main-img">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">Sin imagen</div>`;
 
   const modelBlock = has3D ? `
-    <div id="detail-3d-wrap" class="detail-img-main" style="background:#111;display:block;">
+    <div id="detail-3d-wrap" class="detail-img-main" style="background:#111;display:${p.img ? 'none' : 'block'};">
       <model-viewer
         src="${p.model}"
         alt="${p.name} 3D"
-        auto-rotate
-        auto-rotate-delay="0"
+        auto-rotate auto-rotate-delay="0"
         rotation-per-second="30deg"
         camera-controls
         shadow-intensity="1"
@@ -1217,34 +1106,34 @@ function renderProductDetail(id) {
       </model-viewer>
     </div>` : '';
 
+  const featuresHTML = p.features?.length
+    ? `<div class="detail-features">
+        <h4>Características</h4>
+        <ul class="feature-list">${p.features.map(f => `<li>${f}</li>`).join('')}</ul>
+       </div>`
+    : '';
+
   document.getElementById('product-detail-content').innerHTML = `
     <button class="back-btn" onclick="showPage('home')">← Volver al catálogo</button>
     <div class="detail-grid">
       <div>
-        <div class="detail-img-main" id="detail-img-wrap" style="${has3D ? 'display:none' : 'display:block'}">
-          <img src="${p.img}" alt="${p.name}" id="detail-main-img">
-        </div>
+        <div class="detail-img-main" id="detail-img-wrap" style="${has3D && !p.img ? 'display:none' : 'display:block'}">${imgBlock}</div>
         ${modelBlock}
-        <div class="detail-thumbs">${thumb3D}${thumbsHTML}</div>
+        <div class="detail-thumbs">${thumb3D}${p.img ? `<div class="thumb active" onclick="selectThumb(this,'${p.img}')"><img src="${p.img}" alt="${p.name}"></div>` : ''}</div>
       </div>
       <div class="detail-info">
-        <p class="detail-category">${catLabel(p.category)}</p>
+        <p class="detail-category">${categories.find(c=>c.slug===p.category)?.name || p.category}</p>
         <h1 class="detail-name">${p.name}</h1>
         <p class="detail-price">${fmt(p.price)}</p>
-        <p class="detail-description">${p.description}</p>
-        <div class="detail-features">
-          <h4>Características</h4>
-          <ul class="feature-list">
-            ${p.features.map(f => `<li>${f}</li>`).join('')}
-          </ul>
-        </div>
+        <p class="detail-description">${p.description || ''}</p>
+        ${featuresHTML}
         <div class="qty-row">
           <div class="qty-control">
             <button class="qty-btn" onclick="changeDetailQty(-1)">−</button>
             <span class="qty-num" id="detail-qty">1</span>
             <button class="qty-btn" onclick="changeDetailQty(1)">+</button>
           </div>
-          <button class="add-detail-btn" onclick="addToCartDetail(${p.id})">
+          <button class="add-detail-btn" onclick="addToCartDetail('${p.id}')">
             Agregar al carrito
           </button>
         </div>
@@ -1264,8 +1153,7 @@ function selectThumb(el, src) {
   el.classList.add('active');
   const wrap3d = document.getElementById('detail-3d-wrap');
   if (wrap3d) wrap3d.style.display = 'none';
-  const imgWrap = document.getElementById('detail-img-wrap');
-  if (imgWrap) imgWrap.style.display = 'block';
+  document.getElementById('detail-img-wrap').style.display = 'block';
   document.getElementById('detail-main-img').src = src;
 }
 
@@ -1329,19 +1217,21 @@ function renderCart() {
 
   const itemsHTML = cart.map(item => `
     <div class="cart-item">
-      <div class="cart-item-img"><img src="${item.img}" alt="${item.name}"></div>
+      <div class="cart-item-img">
+        ${item.img ? `<img src="${item.img}" alt="${item.name}">` : ''}
+      </div>
       <div class="cart-item-info">
         <p class="cart-item-name">${item.name}</p>
         <p class="cart-item-unit">${fmt(item.price)} c/u</p>
       </div>
       <div class="cart-item-right">
         <div class="cart-qty-control">
-          <button class="cart-qty-btn" onclick="changeCartQty(${item.id},-1)">−</button>
+          <button class="cart-qty-btn" onclick="changeCartQty('${item.id}',-1)">−</button>
           <span class="cart-qty-num">${item.qty}</span>
-          <button class="cart-qty-btn" onclick="changeCartQty(${item.id},1)">+</button>
+          <button class="cart-qty-btn" onclick="changeCartQty('${item.id}',1)">+</button>
         </div>
         <span class="cart-item-subtotal">${fmt(item.price*item.qty)}</span>
-        <button class="remove-btn" onclick="removeFromCart(${item.id})" title="Eliminar">✕</button>
+        <button class="remove-btn" onclick="removeFromCart('${item.id}')" title="Eliminar">✕</button>
       </div>
     </div>`).join('');
 
@@ -1363,7 +1253,7 @@ function renderCheckout() {
   const lines = cart.map(i => `• ${i.name} ×${i.qty}  —  ${fmt(i.price*i.qty)}`).join('\n');
   const waText =
     `¡Hola! Quiero hacer el siguiente pedido\n\n` +
-    `*── Dígalo con Mate ──*\n\n` +
+    `*── JAKAY'U ──*\n\n` +
     lines +
     `\n\n💰 *Total: ${fmt(total)}*\n\n` +
     `Quedo a la espera de los datos de envío. ¡Gracias!`;
@@ -1375,13 +1265,7 @@ function renderCheckout() {
       <span>${fmt(i.price*i.qty)}</span>
     </div>`).join('');
 
-  document.getElementById('checkout-content').innerHTML = `
-    <div class="checkout-header">
-      <span class="checkout-icon">✓</span>
-      <h2>¡Casi listo! Completá tu pedido</h2>
-      <p>Realizá la transferencia y luego envianos el comprobante con tu pedido por WhatsApp. Te confirmamos en minutos.</p>
-    </div>
-
+  const bankHTML = CONFIG.banco ? `
     <div class="checkout-card">
       <h3>Transferencia bancaria</h3>
       <div class="bank-info">
@@ -1395,8 +1279,15 @@ function renderCheckout() {
           <strong>${fmt(total)}</strong>
         </div>
       </div>
-    </div>
+    </div>` : '';
 
+  document.getElementById('checkout-content').innerHTML = `
+    <div class="checkout-header">
+      <span class="checkout-icon">✓</span>
+      <h2>¡Casi listo! Completá tu pedido</h2>
+      <p>Realizá la transferencia y luego envianos el comprobante con tu pedido por WhatsApp. Te confirmamos en minutos.</p>
+    </div>
+    ${bankHTML}
     <div class="checkout-card">
       <h3>Resumen del pedido</h3>
       <div class="order-items-list">
@@ -1405,7 +1296,6 @@ function renderCheckout() {
         <div class="order-total-row"><span>Total</span><span>${fmt(total)}</span></div>
       </div>
     </div>
-
     <button class="whatsapp-btn" onclick="window.open('${waLink}','_blank')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
@@ -1422,10 +1312,33 @@ function newOrder() {
 }
 
 /* ══════════════════════════════════════════════════════════
+   CARGA DESDE NOTION (vía proxy /api/notion)
+══════════════════════════════════════════════════════════ */
+async function loadFromNotion() {
+  try {
+    const res = await fetch(CONFIG.notionProxy);
+    if (!res.ok) throw new Error('Error al conectar con Notion');
+    const data = await res.json();
+    categories = data.categories || [];
+    products   = data.products   || [];
+  } catch (e) {
+    console.warn('No se pudo cargar desde Notion:', e.message);
+    categories = [];
+    products   = [];
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════════════ */
-renderProducts();
-updateBadge();
+async function init() {
+  await loadFromNotion();
+  renderCategoryNav();
+  renderProducts();
+  updateBadge();
+}
+
+init();
 
 /* Splash hide */
 setTimeout(() => {

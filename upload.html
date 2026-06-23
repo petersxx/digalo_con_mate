@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>JAKAY'U — Subir archivos</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #1a0f0a; color: #d9bfa3; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #2c1810; border: 1px solid #5c3d2e; border-radius: 20px; padding: 40px; width: 480px; }
+    h1 { font-size: 20px; color: #c49a6c; margin-bottom: 6px; }
+    p  { font-size: 13px; color: #8b6f5e; margin-bottom: 28px; }
+    .dropzone {
+      border: 2px dashed #5c3d2e; border-radius: 14px; padding: 48px 20px;
+      text-align: center; cursor: pointer; transition: border-color .2s, background .2s;
+    }
+    .dropzone:hover, .dropzone.over { border-color: #c49a6c; background: rgba(196,154,108,.07); }
+    .dropzone input { display: none; }
+    .dropzone-icon { font-size: 40px; margin-bottom: 12px; }
+    .dropzone-label { font-size: 14px; color: #a0714a; }
+    .dropzone-sub { font-size: 12px; color: #5c3d2e; margin-top: 6px; }
+    .progress { margin-top: 20px; display: none; }
+    .bar-bg { background: #3d2b1f; border-radius: 6px; height: 8px; overflow: hidden; }
+    .bar { background: #c49a6c; height: 100%; width: 0%; transition: width .2s; border-radius: 6px; }
+    .status { font-size: 13px; color: #8b6f5e; margin-top: 10px; }
+    .result {
+      margin-top: 20px; background: #1a0f0a; border: 1px solid #3d2b1f;
+      border-radius: 10px; padding: 16px; display: none;
+    }
+    .result label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #5c3d2e; display: block; margin-bottom: 8px; }
+    .url-box { display: flex; gap: 8px; align-items: center; }
+    .url-box input { flex: 1; background: #2c1810; border: 1px solid #5c3d2e; color: #d9bfa3; border-radius: 8px; padding: 9px 12px; font-size: 12px; font-family: monospace; }
+    .copy-btn { background: #c49a6c; color: #1a0f0a; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap; }
+    .copy-btn:hover { background: #d9bfa3; }
+    .tip { margin-top: 14px; font-size: 11px; color: #5c3d2e; line-height: 1.6; }
+    .tip strong { color: #a0714a; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Subir archivos</h1>
+  <p>Modelos 3D (.glb) e imágenes (.jpg, .png, .webp)</p>
+
+  <div class="dropzone" id="drop" onclick="document.getElementById('file-input').click()">
+    <input type="file" id="file-input" accept=".glb,.gltf,.jpg,.jpeg,.png,.webp">
+    <div class="dropzone-icon">📦</div>
+    <div class="dropzone-label">Arrastrá el archivo acá o hacé clic para elegir</div>
+    <div class="dropzone-sub">.glb · .jpg · .png · .webp</div>
+  </div>
+
+  <div class="progress" id="progress">
+    <div class="bar-bg"><div class="bar" id="bar"></div></div>
+    <div class="status" id="status">Subiendo…</div>
+  </div>
+
+  <div class="result" id="result">
+    <label>URL del archivo — pegala en Notion</label>
+    <div class="url-box">
+      <input type="text" id="url-out" readonly>
+      <button class="copy-btn" onclick="copyURL()">Copiar</button>
+    </div>
+    <p class="tip">Pegá esta URL en Notion en el campo <strong>Modelo 3D</strong> (para .glb) o <strong>Imagen URL</strong> (para fotos).</p>
+  </div>
+</div>
+
+<script>
+  const drop = document.getElementById('drop');
+  const input = document.getElementById('file-input');
+
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); upload(e.dataTransfer.files[0]); });
+  input.addEventListener('change', () => upload(input.files[0]));
+
+  async function upload(file) {
+    if (!file) return;
+    document.getElementById('progress').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('bar').style.width = '0%';
+    document.getElementById('status').textContent = `Subiendo ${file.name}…`;
+
+    // Simula barra de progreso mientras sube
+    let pct = 0;
+    const tick = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 15, 90);
+      document.getElementById('bar').style.width = pct + '%';
+    }, 200);
+
+    try {
+      const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        body: file,
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      });
+      clearInterval(tick);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al subir');
+
+      document.getElementById('bar').style.width = '100%';
+      document.getElementById('status').textContent = '¡Listo!';
+      document.getElementById('url-out').value = data.url;
+      document.getElementById('result').style.display = 'block';
+    } catch (err) {
+      clearInterval(tick);
+      document.getElementById('status').textContent = 'Error: ' + err.message;
+    }
+  }
+
+  function copyURL() {
+    const input = document.getElementById('url-out');
+    navigator.clipboard.writeText(input.value);
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => btn.textContent = 'Copiar', 1500);
+  }
+</script>
+</body>
+</html>
