@@ -122,6 +122,56 @@
       font-weight: 800;
     }
 
+    /* ── SEARCH ──────────────────────────── */
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 340px;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--b600);
+      color: var(--b200);
+      padding: 8px 36px 8px 14px;
+      border-radius: 30px;
+      font-family: 'Lato', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .18s, background .18s;
+    }
+    .search-input::placeholder { color: var(--b500); }
+    .search-input:focus { border-color: var(--b400); background: rgba(255,255,255,0.11); }
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--b500);
+      pointer-events: none;
+    }
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--b400);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 4px;
+      display: none;
+    }
+    .search-results-header {
+      padding: 0 0 14px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+    .search-results-header strong { color: var(--b600); }
+
     /* ── CATEGORY NAV ─────────────────────── */
     .cat-nav { background: var(--card); border-bottom: 1px solid var(--b200); }
     .cat-nav-inner {
@@ -151,18 +201,48 @@
     .cat-btn:hover { color: var(--b700); }
     .cat-btn.active { color: var(--b700); border-bottom-color: var(--b500); }
 
-    /* ── HERO ─────────────────────────────── */
-    .hero {
+    /* ── CARRUSEL HERO ────────────────────── */
+    .carousel {
       position: relative;
-      background-image:
-        linear-gradient(to right, rgba(44,24,16,0.88) 40%, rgba(44,24,16,0.4) 100%),
-        url('./img/guampa-campo.jpeg');
-      background-size: cover;
-      background-position: center 40%;
-      padding: 90px 24px;
-      color: var(--white);
+      height: 580px;
+      overflow: hidden;
     }
-    .hero-inner { max-width: 1200px; margin: 0 auto; }
+    .carousel-track {
+      position: relative;
+      height: 100%;
+    }
+    .carousel-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+    }
+    .carousel-slide.active {
+      opacity: 1;
+      z-index: 1;
+    }
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .carousel-slide::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(28,14,8,.82) 38%, rgba(28,14,8,.25) 100%);
+    }
+    .carousel-content {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+    }
+    .carousel-inner { max-width: 1200px; margin: 0 auto; width: 100%; }
     .hero-tag {
       display: inline-block;
       border: 1px solid var(--b400);
@@ -175,15 +255,17 @@
       border-radius: 20px;
       margin-bottom: 20px;
     }
-    .hero h2 {
+    .carousel-content h2 {
+      font-family: 'Playfair Display', serif;
       font-size: 52px;
       font-weight: 800;
       line-height: 1.1;
       margin-bottom: 16px;
       max-width: 520px;
+      color: var(--white);
     }
-    .hero h2 em { color: var(--b400); font-style: italic; }
-    .hero p {
+    .carousel-content h2 em { color: var(--b400); font-style: italic; }
+    .carousel-content p {
       font-size: 16px;
       color: rgba(255,255,255,0.8);
       max-width: 440px;
@@ -205,6 +287,56 @@
       transition: background .2s, transform .15s;
     }
     .hero-btn:hover { background: var(--b300); transform: translateY(-1px); }
+
+    /* flechas */
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      background: rgba(44,24,16,.55);
+      border: 1px solid var(--b600);
+      color: var(--b300);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .18s;
+    }
+    .carousel-arrow:hover { background: rgba(44,24,16,.9); }
+    .carousel-arrow.prev { left: 16px; }
+    .carousel-arrow.next { right: 16px; }
+
+    /* dots */
+    .carousel-dots {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: flex;
+      gap: 8px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.35);
+      border: none;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+      padding: 0;
+    }
+    .dot.active { background: var(--b400); transform: scale(1.3); }
+
+    @media (max-width: 700px) {
+      .carousel { height: 420px; }
+      .carousel-content h2 { font-size: 30px; }
+      .carousel-arrow { width: 34px; height: 34px; }
+    }
 
     /* ── MAIN / CATALOG ───────────────────── */
     .main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
@@ -792,7 +924,8 @@
     /* ── RESPONSIVE ───────────────────────── */
     @media (max-width: 700px) {
       /* header */
-      .header-inner { height: 56px; padding: 0 14px; }
+      .header-inner { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 10px; }
+      .search-wrap  { order: 3; max-width: 100%; flex: 1 1 100%; }
       .logo-text h1 { font-size: 15px; }
       .logo-text span { display: none; }
       .logo-divider { height: 24px; }
@@ -864,6 +997,15 @@
         <span>Tienda mateira artesanal</span>
       </div>
     </div>
+    <div class="search-wrap">
+      <input class="search-input" id="search-input" type="text" placeholder="Buscar productos…"
+        oninput="handleSearch(this.value)" onkeydown="if(event.key==='Escape')clearSearch()">
+      <svg class="search-icon" id="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+    </div>
+
     <button class="cart-btn" onclick="showPage('cart')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
@@ -885,13 +1027,42 @@
 
 <!-- ── HOME PAGE ───────────────────────────────────────────── -->
 <div id="page-home" class="page active">
-  <div class="hero">
-    <div class="hero-inner">
-      <span class="hero-tag">Artesanal · Tradicional · Auténtico</span>
-      <h2>El mate,<br>con toda la <em>onda</em></h2>
-      <p>Guampas artesanales, termos de primera y todo lo que necesitás para el mate perfecto.</p>
-      <button class="hero-btn" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">Ver catálogo</button>
+  <div class="carousel" id="carousel">
+    <div class="carousel-track" id="carousel-track">
+      <div class="carousel-slide">
+        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg" alt="JAKAY'U" loading="eager">
+      </div>
+      <div class="carousel-slide">
+        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-b.jpg" alt="JAKAY'U" loading="lazy">
+      </div>
+      <div class="carousel-slide">
+        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-c.jpg" alt="JAKAY'U" loading="lazy">
+      </div>
+      <div class="carousel-slide">
+        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-d.jpg" alt="JAKAY'U" loading="lazy">
+      </div>
     </div>
+
+    <!-- texto encima -->
+    <div class="carousel-content">
+      <div class="carousel-inner">
+        <span class="hero-tag">Artesanal · Tradicional · Auténtico</span>
+        <h2>El mate,<br>con toda la <em>onda</em></h2>
+        <p>Guampas artesanales, termos de primera y todo lo que necesitás para el mate perfecto.</p>
+        <button class="hero-btn" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">Ver catálogo</button>
+      </div>
+    </div>
+
+    <!-- flechas -->
+    <button class="carousel-arrow prev" onclick="carouselMove(-1)" aria-label="Anterior">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="carousel-arrow next" onclick="carouselMove(1)" aria-label="Siguiente">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <!-- dots -->
+    <div class="carousel-dots" id="carousel-dots"></div>
   </div>
   <div class="main" id="catalogo">
     <div id="products-container"></div>
@@ -1013,6 +1184,38 @@ function showPage(page, id) {
 }
 
 /* ══════════════════════════════════════════════════════════
+   BÚSQUEDA
+══════════════════════════════════════════════════════════ */
+let searchQuery = '';
+let searchTimer = null;
+
+function handleSearch(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = val.trim().toLowerCase();
+    document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
+    document.getElementById('search-icon').style.display  = searchQuery ? 'none'  : 'block';
+    if (searchQuery) showPage('home');
+    renderProducts();
+  }, 180);
+}
+
+function clearSearch() {
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  document.getElementById('search-icon').style.display  = 'block';
+  renderProducts();
+}
+
+function matchesSearch(p) {
+  if (!searchQuery) return true;
+  const catName = categories.find(c => c.slug === p.category)?.name || '';
+  return [p.name, p.description, p.badge, catName]
+    .some(f => f && f.toLowerCase().includes(searchQuery));
+}
+
+/* ══════════════════════════════════════════════════════════
    CATÁLOGO
 ══════════════════════════════════════════════════════════ */
 function filterCat(cat, btn) {
@@ -1032,9 +1235,18 @@ function renderCategoryNav() {
 }
 
 function renderProducts() {
-  const filtered = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
+  let filtered = (currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter))
+    .filter(matchesSearch);
+
   let html = '';
-  if (currentFilter === 'all') {
+
+  if (searchQuery) {
+    const count = filtered.length;
+    html += `<p class="search-results-header">
+      ${count ? `<strong>${count}</strong> resultado${count !== 1 ? 's' : ''} para "<strong>${searchQuery}</strong>"` : `Sin resultados para "<strong>${searchQuery}</strong>"`}
+    </p>`;
+    html += count ? `<div class="products-grid">${filtered.map(cardHTML).join('')}</div>` : '';
+  } else if (currentFilter === 'all') {
     const grouped = {};
     filtered.forEach(p => { (grouped[p.category] = grouped[p.category] || []).push(p); });
     for (const [cat, items] of Object.entries(grouped)) {
@@ -1043,9 +1255,11 @@ function renderProducts() {
       html += `<div class="products-grid">${items.map(cardHTML).join('')}</div>`;
     }
   } else {
-    html = `<div class="products-grid">${filtered.map(cardHTML).join('')}</div>`;
+    html = filtered.length
+      ? `<div class="products-grid">${filtered.map(cardHTML).join('')}</div>`
+      : `<p style="color:var(--muted);padding:40px 0;">No hay productos en esta categoría aún.</p>`;
   }
-  if (!html) html = `<p style="color:var(--muted);padding:40px 0;">No hay productos en esta categoría aún.</p>`;
+
   document.getElementById('products-container').innerHTML = html;
 }
 
@@ -1310,6 +1524,56 @@ function newOrder() {
   updateBadge();
   showPage('home');
 }
+
+/* ══════════════════════════════════════════════════════════
+   CARRUSEL — CROSSFADE
+══════════════════════════════════════════════════════════ */
+(function () {
+  const INTERVAL = 3500;
+  let current = 0;
+  let timer;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const slides = Array.from(document.querySelectorAll('.carousel-slide'));
+    const total  = slides.length;
+    slides[0].classList.add('active');
+
+    function goTo(n) {
+      slides[current].classList.remove('active');
+      current = (n + total) % total;
+      slides[current].classList.add('active');
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    // Dots
+    const dotsEl = document.getElementById('carousel-dots');
+    for (let i = 0; i < total; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'dot' + (i === 0 ? ' active' : '');
+      btn.setAttribute('aria-label', 'Slide ' + (i + 1));
+      btn.onclick = () => { goTo(i); resetTimer(); };
+      dotsEl.appendChild(btn);
+    }
+
+    // Flechas
+    window.carouselMove = function (dir) { goTo(current + dir); resetTimer(); };
+
+    // Swipe táctil
+    let startX = 0;
+    document.getElementById('carousel').addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    document.getElementById('carousel').addEventListener('touchend', e => {
+      const diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) { goTo(current + (diff > 0 ? 1 : -1)); resetTimer(); }
+    }, { passive: true });
+
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => goTo(current + 1), INTERVAL);
+    }
+
+    resetTimer();
+  });
+})();
 
 /* ══════════════════════════════════════════════════════════
    CARGA DESDE NOTION (vía proxy /api/notion)
