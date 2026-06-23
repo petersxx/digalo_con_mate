@@ -1,31 +1,114 @@
+<!--
+  ================================================================
+   index.html  —  Tienda online JAKAY'U
+  ================================================================
+
+  ESTRUCTURA GENERAL DE ESTE ARCHIVO
+  ────────────────────────────────────
+  Este es un archivo HTML único que contiene TODA la aplicación:
+  los estilos (CSS), el contenido visual (HTML) y la lógica (JS).
+
+  Se divide en estas grandes secciones:
+
+    1. <head>          → Metadatos, fuentes y estilos CSS
+    2. Splash          → Pantalla de carga animada al entrar
+    3. Header          → Barra superior con logo, buscador y carrito
+    4. Category Nav    → Barra de categorías (Guampas, Termos, etc.)
+    5. Home Page       → Carrusel hero + grilla de productos
+    6. Product Page    → Detalle de un producto individual
+    7. Cart Page       → Carrito de compras
+    8. Checkout Page   → Resumen del pedido + datos de transferencia
+    9. Mapa            → Ubicación del local en Google Maps
+   10. Footer          → Pie de página
+   11. <script>        → Toda la lógica JavaScript
+
+  CÓMO FUNCIONA LA CARGA DE DATOS
+  ─────────────────────────────────
+  Al abrir la página, el JS llama a /api/notion (archivo
+  api/notion.js) que consulta Notion y devuelve categorías y
+  productos. Esos datos se renderizan dinámicamente en el HTML.
+  Cualquier cambio en Notion se refleja en la web al recargar.
+
+  PÁGINAS (SPA — Single Page Application)
+  ──────────────────────────────────────────
+  La web simula múltiples páginas sin recargar el navegador.
+  Hay 4 "páginas" (divs con id="page-*") y solo una está
+  visible a la vez. La función showPage() muestra/oculta
+  el div correcto cuando el usuario navega.
+  ================================================================
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Codificación de caracteres: necesario para mostrar tildes, ñ, etc. -->
   <meta charset="UTF-8" />
+
+  <!-- Viewport: hace que la web se vea bien en celulares.
+       "width=device-width" usa el ancho real del dispositivo.
+       "initial-scale=1.0" no hace zoom automático. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>JAKAY'U — Tienda mateira</title>
+
+  <!-- Preconnect: le dice al navegador que se conecte anticipadamente
+       a los servidores de Google Fonts para que las fuentes
+       carguen más rápido cuando las pidamos abajo. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Fuentes tipográficas de Google Fonts:
+       - Playfair Display: fuente serif elegante, usada en títulos y precios
+       - Lato: fuente sans-serif limpia, usada en textos y botones
+       Cargamos distintos pesos (300=ligero, 400=normal, 700=negrita, 800=extranegrita)
+       e itálica para Playfair Display. -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <!-- Model Viewer: librería de Google para mostrar modelos 3D (.glb)
+       en el navegador con rotación automática y controles de cámara.
+       Se carga como "module" porque usa ES Modules internamente. -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <style>
+    /*
+     * Reset universal: elimina el margen, padding y borde que los
+     * navegadores aplican por defecto a todos los elementos.
+     * box-sizing: border-box hace que el padding y borde se
+     * incluyan dentro del ancho/alto declarado (más intuitivo).
+     */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /*
+     * Variables CSS (Custom Properties)
+     * ───────────────────────────────────
+     * Definimos nuestra paleta de colores una sola vez aquí
+     * y la reutilizamos en todo el CSS con var(--nombre).
+     * Si querés cambiar un color, solo lo cambiás acá y se
+     * actualiza en toda la web automáticamente.
+     *
+     * La paleta es una escala de marrones cálidos (b = brown):
+     *   --b900 → más oscuro (casi negro)
+     *   --b400 → dorado / caramelo (color principal)
+     *   --b200 → crema claro
+     *
+     * --cream  → fondo general de la página (crema cálido)
+     * --card   → fondo de las tarjetas de productos (blanco cálido)
+     * --muted  → color para textos secundarios (marrón apagado)
+     * --shadow → sombra suave para las tarjetas
+     */
     :root {
-      --b900:   #2c1810;
-      --b800:   #3d2b1f;
-      --b700:   #5c3d2e;
-      --b600:   #7a5139;
-      --b500:   #a0714a;
-      --b400:   #c49a6c;
-      --b300:   #d9bfa3;
-      --b200:   #ede3d8;
-      --cream:  #f5efe6;
-      --card:   #fdfaf7;
-      --white:  #ffffff;
-      --muted:  #8b6f5e;
-      --shadow: 0 2px 14px rgba(60,30,10,0.08);
-      --shadow-md: 0 8px 28px rgba(60,30,10,0.13);
+      --b900:   #2c1810; /* Marrón muy oscuro — header, splash */
+      --b800:   #3d2b1f; /* Marrón oscuro — header */
+      --b700:   #5c3d2e; /* Marrón medio oscuro — botones principales */
+      --b600:   #7a5139; /* Marrón medio — hover de botones */
+      --b500:   #a0714a; /* Marrón claro — etiquetas de categoría */
+      --b400:   #c49a6c; /* Dorado / caramelo — color de acento principal */
+      --b300:   #d9bfa3; /* Beige dorado — textos sobre fondo oscuro */
+      --b200:   #ede3d8; /* Crema medio — bordes, fondos suaves */
+      --cream:  #f5efe6; /* Crema claro — fondo de la página */
+      --card:   #fdfaf7; /* Blanco cálido — fondo de tarjetas */
+      --white:  #ffffff; /* Blanco puro */
+      --muted:  #8b6f5e; /* Marrón apagado — textos secundarios */
+      --shadow: 0 2px 14px rgba(60,30,10,0.08);    /* Sombra suave */
+      --shadow-md: 0 8px 28px rgba(60,30,10,0.13); /* Sombra media */
     }
 
     body {
@@ -1131,36 +1214,106 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ══════════════════════════════════════════════════════════
-   CONFIGURACIÓN
-══════════════════════════════════════════════════════════ */
+/*
+ * ════════════════════════════════════════════════════════════
+ *  JAVASCRIPT — Lógica completa de la tienda JAKAY'U
+ * ════════════════════════════════════════════════════════════
+ *
+ *  Este bloque <script> maneja todo el comportamiento
+ *  interactivo de la web. Se divide en estas secciones:
+ *
+ *   1. CONFIG      → Datos del negocio (WhatsApp, banco, etc.)
+ *   2. ESTADO      → Variables globales que guardan datos en memoria
+ *   3. UTILIDADES  → Funciones pequeñas reutilizables
+ *   4. NAVEGACIÓN  → Sistema de páginas (SPA)
+ *   5. BÚSQUEDA    → Buscador en tiempo real
+ *   6. CATÁLOGO    → Renderizado de productos y categorías
+ *   7. DETALLE     → Vista individual de un producto
+ *   8. CARRITO     → Agregar, quitar, modificar cantidades
+ *   9. CHECKOUT    → Resumen + mensaje de WhatsApp
+ *  10. CARRUSEL    → Animación del hero con crossfade
+ *  11. NOTION      → Carga de datos desde la API
+ *  12. INIT        → Arranque de la aplicación
+ * ════════════════════════════════════════════════════════════
+ */
+
+
+/* ════════════════════════════════════════════════════════════
+   1. CONFIGURACIÓN
+   ─────────────────
+   Objeto central con los datos del negocio.
+   Acá editás los datos reales antes de publicar:
+   - whatsappNumber: número con código de país, sin + ni espacios
+   - banco/titular/cuenta/alias/ruc: datos para transferencia
+   - moneda: símbolo que se muestra antes de los precios
+   - notionProxy: URL del endpoint que conecta con Notion
+════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  whatsappNumber: '595991230966',
-  banco:    '',
-  titular:  '',
-  cuenta:   '',
-  alias:    '',
-  ruc:      '',
-  moneda:   'Gs.',
-  notionProxy: '/api/notion',
+  whatsappNumber: '595991230966', // ← Cambiá por el número real
+  banco:    '',    // ← Ej: 'Banco Continental'
+  titular:  '',    // ← Ej: 'JAKAY\'U S.R.L.'
+  cuenta:   '',    // ← Ej: '0001-0123456-7'
+  alias:    '',    // ← Ej: 'JAKAYU.MATE'
+  ruc:      '',    // ← Ej: '80012345-6'
+  moneda:   'Gs.', // Guaraníes paraguayos
+  notionProxy: '/api/notion', // No cambiar — es la URL de nuestra API
 };
 
-/* ══════════════════════════════════════════════════════════
-   ESTADO
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   2. ESTADO GLOBAL
+   ─────────────────
+   Variables que viven en memoria mientras la página está abierta.
+   Se pierden al recargar (el carrito no se guarda entre sesiones).
+
+   - products:     Array con todos los productos cargados de Notion
+   - categories:   Array con todas las categorías cargadas de Notion
+   - cart:         Array con los productos que el usuario agregó al carrito
+                   Cada item tiene: { ...productoCompleto, qty: número }
+   - currentFilter: Slug de la categoría activa ('all' = todas)
+   - detailQty:    Cantidad seleccionada en la vista de detalle de producto
+════════════════════════════════════════════════════════════ */
 let products = [];
 let categories = [];
 let cart = [];
 let currentFilter = 'all';
 let detailQty = 1;
 
-/* ══════════════════════════════════════════════════════════
-   UTILIDADES
-══════════════════════════════════════════════════════════ */
-function fmt(n)      { return CONFIG.moneda + ' ' + n.toLocaleString('es-PY'); }
+
+/* ════════════════════════════════════════════════════════════
+   3. UTILIDADES
+   ──────────────
+   Funciones pequeñas que se usan en varios lugares.
+════════════════════════════════════════════════════════════ */
+
+/*
+ * fmt(n) — Formatea un número como precio en Guaraníes
+ * Ej: fmt(85000) → "Gs. 85.000"
+ * toLocaleString('es-PY') agrega los puntos de miles según el
+ * formato paraguayo (usa punto como separador de miles).
+ */
+function fmt(n) { return CONFIG.moneda + ' ' + n.toLocaleString('es-PY'); }
+
+/*
+ * cartTotal() — Calcula el precio total del carrito
+ * Suma (precio × cantidad) de cada producto en el carrito.
+ * reduce() recorre el array acumulando el resultado.
+ */
 function cartTotal() { return cart.reduce((s,i) => s + i.price * i.qty, 0); }
+
+/*
+ * cartCount() — Cuenta el total de unidades en el carrito
+ * Si hay 2 guampas y 1 termo, devuelve 3.
+ */
 function cartCount() { return cart.reduce((s,i) => s + i.qty, 0); }
 
+/*
+ * toast(msg) — Muestra una notificación flotante temporaria
+ * Aparece en la esquina inferior derecha por 2.8 segundos.
+ * Se usa para confirmar acciones ("Agregado al carrito").
+ * El clearTimeout evita que se superpongan si el usuario
+ * hace clic rápido varias veces.
+ */
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1168,11 +1321,43 @@ function toast(msg) {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.remove('show'), 2800);
 }
+
+/*
+ * updateBadge() — Actualiza el número rojo sobre el ícono del carrito
+ * Se llama cada vez que cambia el contenido del carrito.
+ */
 function updateBadge() { document.getElementById('cart-count').textContent = cartCount(); }
 
-/* ══════════════════════════════════════════════════════════
-   NAVEGACIÓN
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   4. NAVEGACIÓN (SPA — Single Page Application)
+   ───────────────────────────────────────────────
+   La web tiene 4 "páginas" que son divs en el HTML:
+     #page-home     → Catálogo principal
+     #page-product  → Detalle de un producto
+     #page-cart     → Carrito de compras
+     #page-checkout → Finalizar pedido
+
+   Solo una está visible a la vez. showPage() oculta todas
+   y muestra solo la que corresponde.
+════════════════════════════════════════════════════════════ */
+
+/*
+ * showPage(page, id)
+ * ──────────────────
+ * Navega a una página específica.
+ *
+ * Parámetros:
+ *   page → nombre de la página: 'home', 'product', 'cart', 'checkout'
+ *   id   → (solo para 'product') ID del producto a mostrar
+ *
+ * Lo que hace:
+ *   1. Oculta todas las páginas (quita clase 'active')
+ *   2. Oculta/muestra la barra de categorías (solo visible en home)
+ *   3. Muestra la página pedida (agrega clase 'active')
+ *   4. Sube el scroll al inicio
+ *   5. Si corresponde, renderiza el contenido de esa página
+ */
 function showPage(page, id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('cat-nav').style.display = page === 'home' ? '' : 'none';
@@ -1183,23 +1368,46 @@ function showPage(page, id) {
   if (page === 'checkout') renderCheckout();
 }
 
-/* ══════════════════════════════════════════════════════════
-   BÚSQUEDA
-══════════════════════════════════════════════════════════ */
-let searchQuery = '';
-let searchTimer = null;
 
+/* ════════════════════════════════════════════════════════════
+   5. BÚSQUEDA EN TIEMPO REAL
+   ───────────────────────────
+   El buscador filtra los productos mientras el usuario escribe,
+   sin recargar la página ni hacer nuevas llamadas a Notion.
+   Busca en: nombre, descripción, badge y nombre de categoría.
+════════════════════════════════════════════════════════════ */
+let searchQuery = '';  // Texto de búsqueda actual (en minúsculas)
+let searchTimer = null; // Timer para el debounce
+
+/*
+ * handleSearch(val)
+ * ─────────────────
+ * Se llama con cada tecla que el usuario presiona en el buscador.
+ *
+ * Usa "debounce": espera 180ms antes de buscar. Si el usuario
+ * sigue escribiendo, cancela el timer y reinicia la espera.
+ * Esto evita buscar con cada letra individual y hace la
+ * búsqueda más eficiente.
+ */
 function handleSearch(val) {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     searchQuery = val.trim().toLowerCase();
+    // Mostrar/ocultar el ícono de lupa o la X según haya texto
     document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
     document.getElementById('search-icon').style.display  = searchQuery ? 'none'  : 'block';
+    // Si hay búsqueda activa, asegurarse de estar en la página home
     if (searchQuery) showPage('home');
     renderProducts();
   }, 180);
 }
 
+/*
+ * clearSearch()
+ * ─────────────
+ * Limpia el buscador y vuelve a mostrar todos los productos.
+ * Se llama al presionar la X o la tecla Escape.
+ */
 function clearSearch() {
   searchQuery = '';
   document.getElementById('search-input').value = '';
@@ -1208,6 +1416,21 @@ function clearSearch() {
   renderProducts();
 }
 
+/*
+ * matchesSearch(p)
+ * ────────────────
+ * Devuelve true si el producto p coincide con la búsqueda actual.
+ * Si no hay búsqueda (searchQuery vacío), todos coinciden.
+ *
+ * Busca en 4 campos:
+ *   - p.name        → nombre del producto
+ *   - p.description → descripción larga
+ *   - p.badge       → etiqueta (ej: "Más vendido")
+ *   - catName       → nombre de la categoría
+ *
+ * some() devuelve true si AL MENOS UNO de los campos contiene
+ * el texto buscado.
+ */
 function matchesSearch(p) {
   if (!searchQuery) return true;
   const catName = categories.find(c => c.slug === p.category)?.name || '';
@@ -1215,9 +1438,23 @@ function matchesSearch(p) {
     .some(f => f && f.toLowerCase().includes(searchQuery));
 }
 
-/* ══════════════════════════════════════════════════════════
-   CATÁLOGO
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   6. CATÁLOGO
+   ────────────
+   Funciones para renderizar la barra de categorías y la
+   grilla de productos.
+════════════════════════════════════════════════════════════ */
+
+/*
+ * filterCat(cat, btn)
+ * ───────────────────
+ * Filtra los productos por categoría al hacer clic en la barra nav.
+ *
+ * Parámetros:
+ *   cat → slug de la categoría ('all', 'guampas', 'termos', etc.)
+ *   btn → el elemento <button> que se hizo clic (para marcarlo activo)
+ */
 function filterCat(cat, btn) {
   currentFilter = cat;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -1225,6 +1462,15 @@ function filterCat(cat, btn) {
   renderProducts();
 }
 
+/*
+ * renderCategoryNav()
+ * ───────────────────
+ * Genera los botones de la barra de categorías dinámicamente
+ * con los datos que llegaron de Notion.
+ *
+ * Siempre agrega "Todo" como primer botón (activo por defecto),
+ * seguido de un botón por cada categoría de Notion.
+ */
 function renderCategoryNav() {
   const nav = document.getElementById('cat-nav-inner');
   const todoBtn = `<button class="cat-btn active" onclick="filterCat('all',this)">Todo</button>`;
@@ -1234,19 +1480,35 @@ function renderCategoryNav() {
   nav.innerHTML = todoBtn + catBtns;
 }
 
+/*
+ * renderProducts()
+ * ────────────────
+ * Renderiza la grilla de productos según el filtro activo y la búsqueda.
+ *
+ * Tiene 3 modos de visualización:
+ *
+ *   Modo búsqueda → muestra resultados de la búsqueda con contador
+ *   Modo "Todo"   → agrupa productos por categoría con título de sección
+ *   Modo categoría → muestra solo los productos de esa categoría
+ */
 function renderProducts() {
+  // Filtramos primero por categoría, luego por búsqueda
   let filtered = (currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter))
     .filter(matchesSearch);
 
   let html = '';
 
   if (searchQuery) {
+    // MODO BÚSQUEDA: mostrar contador y resultados planos (sin agrupar)
     const count = filtered.length;
     html += `<p class="search-results-header">
       ${count ? `<strong>${count}</strong> resultado${count !== 1 ? 's' : ''} para "<strong>${searchQuery}</strong>"` : `Sin resultados para "<strong>${searchQuery}</strong>"`}
     </p>`;
     html += count ? `<div class="products-grid">${filtered.map(cardHTML).join('')}</div>` : '';
+
   } else if (currentFilter === 'all') {
+    // MODO TODO: agrupar productos por categoría
+    // grouped queda así: { 'guampas': [prod1, prod2], 'termos': [prod3], ... }
     const grouped = {};
     filtered.forEach(p => { (grouped[p.category] = grouped[p.category] || []).push(p); });
     for (const [cat, items] of Object.entries(grouped)) {
@@ -1254,7 +1516,9 @@ function renderProducts() {
       html += `<h2 class="section-title">${catName}</h2><div class="section-rule"></div>`;
       html += `<div class="products-grid">${items.map(cardHTML).join('')}</div>`;
     }
+
   } else {
+    // MODO CATEGORÍA: mostrar solo los de esa categoría
     html = filtered.length
       ? `<div class="products-grid">${filtered.map(cardHTML).join('')}</div>`
       : `<p style="color:var(--muted);padding:40px 0;">No hay productos en esta categoría aún.</p>`;
@@ -1263,6 +1527,23 @@ function renderProducts() {
   document.getElementById('products-container').innerHTML = html;
 }
 
+/*
+ * cardHTML(p)
+ * ───────────
+ * Genera el HTML de una tarjeta de producto para la grilla.
+ *
+ * Parámetro: p → objeto producto con { id, name, price, img, badge, category, ... }
+ * Devuelve: string con el HTML de la tarjeta
+ *
+ * Notas:
+ * - Si no hay imagen, muestra un placeholder "Sin imagen"
+ * - Si hay badge (ej: "Más vendido"), lo muestra encima de la imagen
+ * - onclick en la tarjeta navega al detalle del producto
+ * - El botón "Agregar" usa event.stopPropagation() para evitar
+ *   que el clic llegue a la tarjeta y abra el detalle al mismo tiempo
+ * - loading="lazy" hace que las imágenes se carguen solo cuando
+ *   están por aparecer en pantalla (mejor performance)
+ */
 function cardHTML(p) {
   const img = p.img
     ? `<img src="${p.img}" alt="${p.name}" loading="lazy">`
@@ -1285,26 +1566,54 @@ function cardHTML(p) {
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════════
-   DETALLE DE PRODUCTO
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   7. DETALLE DE PRODUCTO
+   ───────────────────────
+   Vista completa de un producto individual con galería de
+   imágenes, visor 3D (si tiene modelo .glb), descripción,
+   características y selector de cantidad.
+════════════════════════════════════════════════════════════ */
+
+/*
+ * renderProductDetail(id)
+ * ───────────────────────
+ * Genera y muestra la vista de detalle de un producto.
+ *
+ * Parámetro: id → ID del producto (viene de Notion, es un UUID)
+ *
+ * La función construye el HTML del detalle incluyendo:
+ *   - Galería de imágenes con thumbnails
+ *   - Visor 3D (si el producto tiene campo "Modelo 3D" en Notion)
+ *   - Nombre, precio, descripción, características
+ *   - Selector de cantidad (+/-)
+ *   - Botón "Agregar al carrito"
+ */
 function renderProductDetail(id) {
   const p = products.find(x => x.id === id);
-  if (!p) return;
-  detailQty = 1;
+  if (!p) return; // Si no encuentra el producto, no hace nada
+  detailQty = 1;  // Resetea la cantidad a 1 cada vez que abrimos un producto
 
-  const has3D = !!p.model;
+  const has3D = !!p.model; // true si el producto tiene modelo 3D en Notion
 
+  // Botón 3D en los thumbnails (solo si hay modelo .glb)
   const thumb3D = has3D ? `
     <div class="thumb thumb-3d ${!p.img ? 'active' : ''}" onclick="show3D(this)" title="Vista 3D" style="display:flex;align-items:center;justify-content:center;">
       <div class="t3d-icon">⬡</div>
       <div class="t3d-txt">3D</div>
     </div>` : '';
 
+  // Imagen principal: si no hay foto, muestra placeholder
   const imgBlock = p.img
     ? `<img src="${p.img}" alt="${p.name}" id="detail-main-img">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">Sin imagen</div>`;
 
+  // Bloque del visor 3D (model-viewer de Google):
+  //   auto-rotate        → gira solo el modelo
+  //   camera-controls    → el usuario puede rotar con el mouse/dedo
+  //   shadow-intensity   → sombra debajo del modelo
+  //   exposure           → brillo de la escena
+  //   Si hay foto, el 3D empieza oculto (display:none)
   const modelBlock = has3D ? `
     <div id="detail-3d-wrap" class="detail-img-main" style="background:#111;display:${p.img ? 'none' : 'block'};">
       <model-viewer
@@ -1320,6 +1629,7 @@ function renderProductDetail(id) {
       </model-viewer>
     </div>` : '';
 
+  // Lista de características (si el producto las tiene)
   const featuresHTML = p.features?.length
     ? `<div class="detail-features">
         <h4>Características</h4>
@@ -1327,6 +1637,7 @@ function renderProductDetail(id) {
        </div>`
     : '';
 
+  // Inyectamos todo el HTML en el contenedor del detalle
   document.getElementById('product-detail-content').innerHTML = `
     <button class="back-btn" onclick="showPage('home')">← Volver al catálogo</button>
     <div class="detail-grid">
@@ -1355,6 +1666,12 @@ function renderProductDetail(id) {
     </div>`;
 }
 
+/*
+ * show3D(el)
+ * ──────────
+ * Muestra el visor 3D y oculta la imagen principal.
+ * Se llama al hacer clic en el thumbnail "3D".
+ */
 function show3D(el) {
   document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
@@ -1362,6 +1679,12 @@ function show3D(el) {
   document.getElementById('detail-3d-wrap').style.display = 'block';
 }
 
+/*
+ * selectThumb(el, src)
+ * ────────────────────
+ * Cambia la imagen principal al hacer clic en un thumbnail.
+ * También oculta el visor 3D si estaba visible.
+ */
 function selectThumb(el, src) {
   document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
@@ -1371,11 +1694,25 @@ function selectThumb(el, src) {
   document.getElementById('detail-main-img').src = src;
 }
 
+/*
+ * changeDetailQty(delta)
+ * ──────────────────────
+ * Sube o baja la cantidad en la vista de detalle.
+ * delta puede ser +1 o -1. Math.max(1, ...) asegura
+ * que la cantidad nunca baje de 1.
+ */
 function changeDetailQty(delta) {
   detailQty = Math.max(1, detailQty + delta);
   document.getElementById('detail-qty').textContent = detailQty;
 }
 
+/*
+ * addToCartDetail(id)
+ * ───────────────────
+ * Agrega al carrito la cantidad elegida en la vista de detalle.
+ * Si el producto ya está en el carrito, suma la cantidad
+ * en vez de crear un duplicado.
+ */
 function addToCartDetail(id) {
   const p = products.find(x => x.id === id);
   const ex = cart.find(x => x.id === id);
@@ -1384,9 +1721,21 @@ function addToCartDetail(id) {
   toast(`Agregado: ${detailQty} × ${p.name}`);
 }
 
-/* ══════════════════════════════════════════════════════════
-   CARRITO
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   8. CARRITO
+   ───────────
+   Funciones para manejar el carrito de compras.
+   El carrito vive en el array "cart" (en memoria).
+════════════════════════════════════════════════════════════ */
+
+/*
+ * addToCart(id)
+ * ─────────────
+ * Agrega 1 unidad de un producto al carrito.
+ * Se llama desde el botón "Agregar al carrito" en la grilla.
+ * Si el producto ya está, suma 1 a la cantidad existente.
+ */
 function addToCart(id) {
   const p = products.find(x => x.id === id);
   const ex = cart.find(x => x.id === id);
@@ -1395,21 +1744,47 @@ function addToCart(id) {
   toast(`Agregado: ${p.name}`);
 }
 
+/*
+ * changeCartQty(id, delta)
+ * ────────────────────────
+ * Modifica la cantidad de un producto dentro del carrito.
+ * delta: +1 para sumar, -1 para restar.
+ * Si la cantidad llega a 0, el producto se elimina del carrito.
+ * Math.max(0, ...) evita cantidades negativas.
+ */
 function changeCartQty(id, delta) {
   const item = cart.find(x => x.id === id);
   if (!item) return;
   item.qty = Math.max(0, item.qty + delta);
   if (item.qty === 0) cart = cart.filter(x => x.id !== id);
   updateBadge();
-  renderCart();
+  renderCart(); // Re-renderiza el carrito para mostrar los cambios
 }
 
+/*
+ * removeFromCart(id)
+ * ──────────────────
+ * Elimina completamente un producto del carrito.
+ * filter() devuelve un nuevo array sin el producto eliminado.
+ */
 function removeFromCart(id) {
   cart = cart.filter(x => x.id !== id);
   updateBadge();
   renderCart();
 }
 
+/*
+ * renderCart()
+ * ────────────
+ * Renderiza el contenido del carrito.
+ *
+ * Si el carrito está vacío, muestra un mensaje con ícono.
+ * Si tiene productos, muestra:
+ *   - Lista de items con imagen, nombre, precio unitario,
+ *     controles de cantidad y botón eliminar
+ *   - Resumen con subtotal, envío y total
+ *   - Botón "Finalizar pedido"
+ */
 function renderCart() {
   const el = document.getElementById('cart-content');
   if (cart.length === 0) {
@@ -1459,11 +1834,33 @@ function renderCart() {
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════════
-   CHECKOUT
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   9. CHECKOUT
+   ────────────
+   Pantalla final del proceso de compra.
+   Muestra los datos bancarios para la transferencia y
+   genera un mensaje pre-armado para enviar por WhatsApp.
+════════════════════════════════════════════════════════════ */
+
+/*
+ * renderCheckout()
+ * ────────────────
+ * Renderiza la página de checkout con:
+ *   - Datos bancarios (si están configurados en CONFIG)
+ *   - Resumen del pedido (productos y total)
+ *   - Botón de WhatsApp con mensaje pre-armado
+ *
+ * El mensaje de WhatsApp incluye la lista de productos
+ * con cantidades y precios, listo para enviar.
+ * encodeURIComponent() convierte el texto para que funcione
+ * en una URL (reemplaza espacios, tildes, etc.)
+ */
 function renderCheckout() {
   const total = cartTotal();
+
+  // Construimos el texto del mensaje de WhatsApp
+  // Cada producto aparece como: "• Nombre ×cantidad  —  Gs. precio"
   const lines = cart.map(i => `• ${i.name} ×${i.qty}  —  ${fmt(i.price*i.qty)}`).join('\n');
   const waText =
     `¡Hola! Quiero hacer el siguiente pedido\n\n` +
@@ -1471,6 +1868,8 @@ function renderCheckout() {
     lines +
     `\n\n💰 *Total: ${fmt(total)}*\n\n` +
     `Quedo a la espera de los datos de envío. ¡Gracias!`;
+
+  // URL de WhatsApp: wa.me/numero?text=mensaje
   const waLink = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waText)}`;
 
   const itemsHTML = cart.map(i => `
@@ -1479,6 +1878,8 @@ function renderCheckout() {
       <span>${fmt(i.price*i.qty)}</span>
     </div>`).join('');
 
+  // Los datos bancarios solo se muestran si están configurados en CONFIG
+  // Si CONFIG.banco está vacío, bankHTML es cadena vacía y no aparece nada
   const bankHTML = CONFIG.banco ? `
     <div class="checkout-card">
       <h3>Transferencia bancaria</h3>
@@ -1519,33 +1920,64 @@ function renderCheckout() {
     <button class="new-order-btn" onclick="newOrder()">Vaciar carrito y seguir comprando</button>`;
 }
 
+/*
+ * newOrder()
+ * ──────────
+ * Vacía el carrito y vuelve al inicio.
+ * Se llama desde el botón "Vaciar carrito y seguir comprando".
+ */
 function newOrder() {
   cart = [];
   updateBadge();
   showPage('home');
 }
 
-/* ══════════════════════════════════════════════════════════
-   CARRUSEL — CROSSFADE
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   10. CARRUSEL — CROSSFADE
+   ─────────────────────────
+   Carrusel del hero con transición de fundido (crossfade).
+   Todas las imágenes están apiladas (position: absolute).
+   Solo la activa tiene opacity: 1, las demás opacity: 0.
+   El CSS maneja la transición suave con transition: opacity.
+
+   Características:
+   - Auto-avance cada 3.5 segundos
+   - Infinito: al llegar al final vuelve al principio
+   - Dots de navegación generados dinámicamente
+   - Flechas izquierda/derecha
+   - Swipe táctil en celulares
+   - Al interactuar manualmente, resetea el timer de auto-avance
+════════════════════════════════════════════════════════════ */
 (function () {
-  const INTERVAL = 3500;
-  let current = 0;
-  let timer;
+  const INTERVAL = 3500; // Milisegundos entre cada cambio de imagen
+  let current = 0;       // Índice de la imagen actualmente visible
+  let timer;             // Referencia al setInterval para poder cancelarlo
 
   document.addEventListener('DOMContentLoaded', () => {
     const slides = Array.from(document.querySelectorAll('.carousel-slide'));
-    const total  = slides.length;
+    const total  = slides.length; // Total de imágenes (4)
+
+    // Activamos el primer slide al inicio
     slides[0].classList.add('active');
 
+    /*
+     * goTo(n)
+     * ───────
+     * Navega a la imagen número n.
+     * El operador % (módulo) hace que sea circular:
+     *   Si n = total (4), vuelve a 0
+     *   Si n = -1, va a total-1 (3)
+     */
     function goTo(n) {
-      slides[current].classList.remove('active');
-      current = (n + total) % total;
-      slides[current].classList.add('active');
+      slides[current].classList.remove('active'); // Oculta la imagen actual
+      current = (n + total) % total;             // Calcula el nuevo índice
+      slides[current].classList.add('active');   // Muestra la nueva imagen
+      // Actualiza los dots: el activo se marca visualmente
       document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
     }
 
-    // Dots
+    // Genera los dots de navegación dinámicamente (uno por imagen)
     const dotsEl = document.getElementById('carousel-dots');
     for (let i = 0; i < total; i++) {
       const btn = document.createElement('button');
@@ -1555,56 +1987,114 @@ function newOrder() {
       dotsEl.appendChild(btn);
     }
 
-    // Flechas
+    // carouselMove() es llamada por las flechas en el HTML
+    // con dir = +1 (siguiente) o -1 (anterior)
     window.carouselMove = function (dir) { goTo(current + dir); resetTimer(); };
 
-    // Swipe táctil
+    // Soporte de swipe táctil para celulares
+    // Guardamos la posición X donde empieza el toque
+    // y al soltar calculamos la dirección del swipe
     let startX = 0;
-    document.getElementById('carousel').addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    document.getElementById('carousel').addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+    }, { passive: true }); // passive: true mejora el performance del scroll
+
     document.getElementById('carousel').addEventListener('touchend', e => {
       const diff = startX - e.changedTouches[0].clientX;
+      // Solo consideramos swipe si el movimiento fue mayor a 40px
+      // diff > 0 = movió hacia la izquierda = siguiente imagen
+      // diff < 0 = movió hacia la derecha = imagen anterior
       if (Math.abs(diff) > 40) { goTo(current + (diff > 0 ? 1 : -1)); resetTimer(); }
     }, { passive: true });
 
+    /*
+     * resetTimer()
+     * ────────────
+     * Reinicia el contador automático.
+     * Se llama cada vez que el usuario navega manualmente
+     * para que la siguiente imagen automática espere
+     * 3.5s desde el último clic, no desde el inicio.
+     */
     function resetTimer() {
       clearInterval(timer);
       timer = setInterval(() => goTo(current + 1), INTERVAL);
     }
 
-    resetTimer();
+    resetTimer(); // Arrancamos el auto-avance
   });
 })();
+// El (function(){ ... })() es un IIFE (Immediately Invoked Function Expression)
+// Encapsula las variables del carrusel para que no contaminen
+// el espacio global y no choquen con otras variables.
 
-/* ══════════════════════════════════════════════════════════
-   CARGA DESDE NOTION (vía proxy /api/notion)
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   11. CARGA DESDE NOTION
+   ───────────────────────
+   Función que consulta nuestra API (/api/notion) y carga
+   los datos en las variables globales categories y products.
+
+   ¿Por qué usamos fetch y async/await?
+   fetch() hace una petición HTTP al servidor de forma
+   asíncrona (no bloquea la página mientras espera).
+   await espera a que la respuesta llegue antes de continuar.
+════════════════════════════════════════════════════════════ */
 async function loadFromNotion() {
   try {
+    // Consultamos nuestro proxy (/api/notion)
+    // que a su vez consulta la API de Notion
     const res = await fetch(CONFIG.notionProxy);
+
     if (!res.ok) throw new Error('Error al conectar con Notion');
+
+    // Parseamos la respuesta JSON
     const data = await res.json();
-    categories = data.categories || [];
+
+    // Guardamos los datos en las variables globales
+    categories = data.categories || []; // Si Notion no responde bien, usamos array vacío
     products   = data.products   || [];
+
   } catch (e) {
+    // Si algo falla (sin internet, Notion caído, etc.),
+    // logueamos el error y la web queda con catálogo vacío
     console.warn('No se pudo cargar desde Notion:', e.message);
     categories = [];
     products   = [];
   }
 }
 
-/* ══════════════════════════════════════════════════════════
-   INIT
-══════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   12. INICIALIZACIÓN
+   ───────────────────
+   Punto de entrada de la aplicación. Se ejecuta una vez
+   cuando la página termina de cargar.
+
+   Orden de arranque:
+     1. Carga datos de Notion (async — espera la respuesta)
+     2. Renderiza la barra de categorías
+     3. Renderiza la grilla de productos
+     4. Actualiza el badge del carrito (empieza en 0)
+════════════════════════════════════════════════════════════ */
 async function init() {
-  await loadFromNotion();
+  await loadFromNotion(); // Esperamos a tener los datos antes de renderizar
   renderCategoryNav();
   renderProducts();
   updateBadge();
 }
 
-init();
+init(); // ← Arrancamos todo
 
-/* Splash hide */
+
+/* ─── SPLASH (pantalla de carga inicial) ───────────────────
+ * Oculta el splash después de 3 segundos.
+ * El splash tiene una animación CSS (fade-up, steam-rise)
+ * que se reproduce durante esos 3 segundos.
+ *
+ * Primero agrega la clase 'hide' (que tiene transition: opacity)
+ * para un fade out suave. Después de 950ms (duración del fade),
+ * elimina el elemento del DOM completamente para liberar memoria.
+ */
 setTimeout(() => {
   const splash = document.getElementById('splash');
   splash.classList.add('hide');
