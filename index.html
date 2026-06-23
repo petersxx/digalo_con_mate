@@ -526,6 +526,20 @@
       transition: background .18s;
     }
     .add-to-cart-btn:hover { background: var(--b600); }
+    .add-to-cart-btn:disabled { background: var(--b300); cursor: not-allowed; opacity: .7; }
+    .stock-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .stock-tag.low  { background: rgba(255,160,0,.12); color: #b86e00; }
+    .stock-tag.out  { background: rgba(192,57,43,.1);  color: #c0392b; }
+    .stock-tag.ok   { background: rgba(39,174,96,.1);  color: #1e8449; }
 
     /* ── PAGES ────────────────────────────── */
     .page { display: none; }
@@ -1294,6 +1308,13 @@ let detailQty = 1;
  */
 function fmt(n) { return CONFIG.moneda + ' ' + n.toLocaleString('es-PY'); }
 
+function stockTag(stock) {
+  if (stock === null || stock === undefined) return '';
+  if (stock === 0)   return `<span class="stock-tag out">✕ Sin stock</span>`;
+  if (stock <= 5)    return `<span class="stock-tag low">⚡ Últimas ${stock} unidades</span>`;
+  return `<span class="stock-tag ok">✓ Disponible</span>`;
+}
+
 /*
  * cartTotal() — Calcula el precio total del carrito
  * Suma (precio × cantidad) de cada producto en el carrito.
@@ -1559,8 +1580,9 @@ function cardHTML(p) {
         <p class="product-name">${p.name}</p>
         <p class="product-price">${fmt(p.price)}</p>
         <p class="product-desc-short">${p.shortDesc || ''}</p>
-        <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${p.id}')">
-          Agregar al carrito
+        ${stockTag(p.stock)}
+        <button class="add-to-cart-btn" ${p.stock === 0 ? 'disabled' : ''} onclick="event.stopPropagation();addToCart('${p.id}')">
+          ${p.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
         </button>
       </div>
     </div>`;
@@ -1650,16 +1672,17 @@ function renderProductDetail(id) {
         <p class="detail-category">${categories.find(c=>c.slug===p.category)?.name || p.category}</p>
         <h1 class="detail-name">${p.name}</h1>
         <p class="detail-price">${fmt(p.price)}</p>
+        ${stockTag(p.stock)}
         <p class="detail-description">${p.description || ''}</p>
         ${featuresHTML}
         <div class="qty-row">
-          <div class="qty-control">
+          <div class="qty-control" ${p.stock === 0 ? 'style="opacity:.4;pointer-events:none"' : ''}>
             <button class="qty-btn" onclick="changeDetailQty(-1)">−</button>
             <span class="qty-num" id="detail-qty">1</span>
             <button class="qty-btn" onclick="changeDetailQty(1)">+</button>
           </div>
-          <button class="add-detail-btn" onclick="addToCartDetail('${p.id}')">
-            Agregar al carrito
+          <button class="add-detail-btn" ${p.stock === 0 ? 'disabled style="opacity:.5;cursor:not-allowed"' : ''} onclick="addToCartDetail('${p.id}')">
+            ${p.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
           </button>
         </div>
       </div>
