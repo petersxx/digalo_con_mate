@@ -356,6 +356,7 @@
       margin-bottom: 30px;
       font-weight: 300;
     }
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
     .hero-btn {
       background: var(--b400);
       color: var(--b900);
@@ -370,6 +371,12 @@
       transition: background .2s, transform .15s;
     }
     .hero-btn:hover { background: var(--b300); transform: translateY(-1px); }
+    .hero-btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid var(--b400);
+    }
+    .hero-btn-outline:hover { background: rgba(196,154,108,.15); }
 
     /* flechas */
     .carousel-arrow {
@@ -1088,7 +1095,7 @@
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
     <h1 class="splash-title"><em>JAKAY'U</em></h1>
     <div class="splash-line"></div>
-    <p class="splash-sub">Tienda de mates en Solar Guaraní</p>
+    <p class="splash-sub">Tienda de mates hecho artesanalmente</p>
   </div>
 </div>
 
@@ -1098,7 +1105,7 @@
     <div class="logo" onclick="showPage('home')">
       <div class="logo-text">
         <h1>JAKAY'U</h1>
-        <span>Tienda mateira artesanal</span>
+        <span>Tienda de mates artesanal</span>
       </div>
     </div>
     <div class="search-wrap">
@@ -1153,7 +1160,10 @@
         <span class="hero-tag">Artesanal · Tradicional · Auténtico</span>
         <h2>El mate,<br>con toda la <em>onda</em></h2>
         <p>Guampas artesanales, termos de primera y todo lo que necesitás para el mate perfecto.</p>
-        <button class="hero-btn" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">Ver catálogo</button>
+        <div class="hero-btns">
+          <button class="hero-btn" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">Ver catálogo</button>
+          <button class="hero-btn hero-btn-outline" onclick="document.getElementById('donde-encontrarnos').scrollIntoView({behavior:'smooth'})">Dónde encontrarnos</button>
+        </div>
       </div>
     </div>
 
@@ -1196,11 +1206,11 @@
 </div>
 
 <!-- ── MAPA ────────────────────────────────────────────────── -->
-<section class="map-section">
+<section class="map-section" id="donde-encontrarnos">
   <div class="map-inner">
     <div class="map-text">
       <p class="map-tag">Dónde encontrarnos</p>
-      <h2 class="map-title">La Recova<br>Solar Guaraní<br><em>Asunción, Paraguay</em></h2>
+      <h2 class="map-title">Solar Guaraní<br><em>Asunción, Paraguay</em></h2>
       <p class="map-desc">Pasate por el local y elegí tu mate en persona. También hacemos envíos a todo el país.</p>
       <a class="map-link" href="https://maps.app.goo.gl/XoqfBQqVKhxZZJA97" target="_blank">Ver en Google Maps →</a>
     </div>
