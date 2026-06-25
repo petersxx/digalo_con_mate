@@ -165,6 +165,7 @@ module.exports = async function handler(req, res) {
         model:       p['Modelo 3D']?.url                        || null, // URL del modelo .glb (opcional)
         destacado:   p.Destacado?.checkbox                      || false, // ¿Aparece destacado?
         stock:       p.Stock?.number                            ?? null,  // Unidades disponibles (null = sin control)
+        priceOld:    p['Precio anterior']?.number               || null,  // Precio original antes del descuento
       };
     });
 
