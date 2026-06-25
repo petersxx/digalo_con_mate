@@ -509,13 +509,16 @@
       font-weight: 700;
       color: var(--b700);
       margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
     }
     .price-old {
-      text-decoration: line-through;
-      color: var(--muted);
+      font-size: .62em;
       font-weight: 400;
-      font-size: .72em;
-      margin-right: 5px;
+      color: var(--muted);
+      text-decoration: line-through;
+      line-height: 1.1;
     }
     .product-desc-short { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; flex: 1; font-weight: 300; }
     .add-to-cart-btn {
@@ -606,7 +609,7 @@
     .detail-info { padding: 4px 0; }
     .detail-category { font-size: 11px; font-weight: 700; color: var(--b500); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 10px; }
     .detail-name { font-size: 28px; font-weight: 800; margin-bottom: 12px; line-height: 1.2; color: var(--b800); }
-    .detail-price { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--b700); margin-bottom: 20px; }
+    .detail-price { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--b700); margin-bottom: 20px; display: flex; flex-direction: column; gap: 2px; }
     .detail-description { color: var(--muted); line-height: 1.8; margin-bottom: 26px; font-size: 15px; font-weight: 300; }
     .detail-features { margin-bottom: 30px; }
     .detail-features h4 { font-size: 11px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--b700); }
@@ -1585,7 +1588,7 @@ function cardHTML(p) {
       <div class="product-info">
         <p class="product-cat-tag">${categories.find(c=>c.slug===p.category)?.name || p.category}</p>
         <p class="product-name">${p.name}</p>
-        <p class="product-price">${p.priceOld ? `<span class="price-old">${fmt(p.priceOld)}</span>` : ''}${fmt(p.price)}</p>
+        <p class="product-price">${p.priceOld ? `<span class="price-old">${fmt(p.priceOld)}</span>` : ''}<span>${fmt(p.price)}</span></p>
         <p class="product-desc-short">${p.shortDesc || ''}</p>
         <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${p.id}')">
           Agregar al carrito
@@ -1677,7 +1680,7 @@ function renderProductDetail(id) {
       <div class="detail-info">
         <p class="detail-category">${categories.find(c=>c.slug===p.category)?.name || p.category}</p>
         <h1 class="detail-name">${p.name}</h1>
-        <p class="detail-price">${p.priceOld ? `<span class="price-old">${fmt(p.priceOld)}</span>` : ''}${fmt(p.price)}</p>
+        <p class="detail-price">${p.priceOld ? `<span class="price-old">${fmt(p.priceOld)}</span>` : ''}<span>${fmt(p.price)}</span></p>
         ${stockTag(p.stock)}
         <p class="detail-description">${p.description || ''}</p>
         ${featuresHTML}
