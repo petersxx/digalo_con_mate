@@ -1309,6 +1309,7 @@ let categories = [];
 let cart = [];
 let currentFilter = 'all';
 let detailQty = 1;
+let currentDetailStock = null;
 
 
 /* ════════════════════════════════════════════════════════════
@@ -1435,6 +1436,7 @@ function handleSearch(val) {
     document.getElementById('search-icon').style.display  = searchQuery ? 'none'  : 'block';
     // Si hay búsqueda activa, asegurarse de estar en la página home
     if (searchQuery) showPage('home');
+    updateCarouselVisibility();
     renderProducts();
   }, 180);
 }
@@ -1450,6 +1452,7 @@ function clearSearch() {
   document.getElementById('search-input').value = '';
   document.getElementById('search-clear').style.display = 'none';
   document.getElementById('search-icon').style.display  = 'block';
+  updateCarouselVisibility();
   renderProducts();
 }
 
@@ -1470,8 +1473,10 @@ function clearSearch() {
  */
 function matchesSearch(p) {
   if (!searchQuery) return true;
-  const catName = categories.find(c => c.slug === p.category)?.name || '';
-  return [p.name, p.description, p.badge, catName]
+  const cat = categories.find(c => c.slug === p.category);
+  const catName = cat?.name || '';
+  const catSlug = cat?.slug || '';
+  return [p.name, p.description, p.badge, catName, catSlug]
     .some(f => f && f.toLowerCase().includes(searchQuery));
 }
 
@@ -1496,7 +1501,14 @@ function filterCat(cat, btn) {
   currentFilter = cat;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  updateCarouselVisibility();
   renderProducts();
+}
+
+function updateCarouselVisibility() {
+  const carousel = document.getElementById('carousel');
+  const hide = currentFilter !== 'all' || !!searchQuery;
+  carousel.style.display = hide ? 'none' : '';
 }
 
 /*
@@ -1530,7 +1542,8 @@ function renderCategoryNav() {
  */
 function renderProducts() {
   // Filtramos primero por categoría, luego por búsqueda
-  let filtered = (currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter))
+  const activeFilter = searchQuery ? 'all' : currentFilter;
+  let filtered = (activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter))
     .filter(matchesSearch);
 
   let html = '';
@@ -1628,21 +1641,24 @@ function cardHTML(p) {
  */
 function renderProductDetail(id) {
   const p = products.find(x => x.id === id);
-  if (!p) return; // Si no encuentra el producto, no hace nada
-  detailQty = 1;  // Resetea la cantidad a 1 cada vez que abrimos un producto
+  if (!p) return;
+  detailQty = 1;
+  currentDetailStock = p.stock ?? null;
 
   const has3D = !!p.model; // true si el producto tiene modelo 3D en Notion
 
   // Botón 3D en los thumbnails (solo si hay modelo .glb)
   const thumb3D = has3D ? `
-    <div class="thumb thumb-3d ${!p.img ? 'active' : ''}" onclick="show3D(this)" title="Vista 3D" style="display:flex;align-items:center;justify-content:center;">
+    <div class="thumb thumb-3d ${!allImgs.length ? 'active' : ''}" onclick="show3D(this)" title="Vista 3D" style="display:flex;align-items:center;justify-content:center;">
       <div class="t3d-icon">⬡</div>
       <div class="t3d-txt">3D</div>
     </div>` : '';
 
+  const allImgs = p.imgs?.length ? p.imgs : (p.img ? [p.img] : []);
+
   // Imagen principal: si no hay foto, muestra placeholder
-  const imgBlock = p.img
-    ? `<img src="${p.img}" alt="${p.name}" id="detail-main-img">`
+  const imgBlock = allImgs.length
+    ? `<img src="${allImgs[0]}" alt="${p.name}" id="detail-main-img">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);">Sin imagen</div>`;
 
   // Bloque del visor 3D (model-viewer de Google):
@@ -1652,7 +1668,7 @@ function renderProductDetail(id) {
   //   exposure           → brillo de la escena
   //   Si hay foto, el 3D empieza oculto (display:none)
   const modelBlock = has3D ? `
-    <div id="detail-3d-wrap" class="detail-img-main" style="background:#111;display:${p.img ? 'none' : 'block'};">
+    <div id="detail-3d-wrap" class="detail-img-main" style="background:#111;display:${allImgs.length ? 'none' : 'block'};">
       <model-viewer
         src="${p.model}"
         alt="${p.name} 3D"
@@ -1679,9 +1695,9 @@ function renderProductDetail(id) {
     <button class="back-btn" onclick="showPage('home')">← Volver al catálogo</button>
     <div class="detail-grid">
       <div>
-        <div class="detail-img-main" id="detail-img-wrap" style="${has3D && !p.img ? 'display:none' : 'display:block'}">${imgBlock}</div>
+        <div class="detail-img-main" id="detail-img-wrap" style="${has3D && !allImgs.length ? 'display:none' : 'display:block'}">${imgBlock}</div>
         ${modelBlock}
-        <div class="detail-thumbs">${thumb3D}${p.img ? `<div class="thumb active" onclick="selectThumb(this,'${p.img}')"><img src="${p.img}" alt="${p.name}"></div>` : ''}</div>
+        <div class="detail-thumbs">${thumb3D}${allImgs.map((src, i) => `<div class="thumb ${i === 0 ? 'active' : ''}" onclick="selectThumb(this,'${src}')"><img src="${src}" alt="${p.name}"></div>`).join('')}</div>
       </div>
       <div class="detail-info">
         <p class="detail-category">${categories.find(c=>c.slug===p.category)?.name || p.category}</p>
@@ -1740,7 +1756,8 @@ function selectThumb(el, src) {
  * que la cantidad nunca baje de 1.
  */
 function changeDetailQty(delta) {
-  detailQty = Math.max(1, detailQty + delta);
+  const max = currentDetailStock !== null ? currentDetailStock : Infinity;
+  detailQty = Math.min(max, Math.max(1, detailQty + delta));
   document.getElementById('detail-qty').textContent = detailQty;
 }
 
@@ -1754,6 +1771,13 @@ function changeDetailQty(delta) {
 function addToCartDetail(id) {
   const p = products.find(x => x.id === id);
   const ex = cart.find(x => x.id === id);
+  const enCarrito = ex ? ex.qty : 0;
+  if (p.stock !== null && enCarrito + detailQty > p.stock) {
+    const disponible = p.stock - enCarrito;
+    if (disponible <= 0) { toast(`Ya tenés el máximo disponible en el carrito`); return; }
+    detailQty = disponible;
+    document.getElementById('detail-qty').textContent = detailQty;
+  }
   if (ex) ex.qty += detailQty; else cart.push({ ...p, qty: detailQty });
   updateBadge();
   toast(`Agregado: ${detailQty} × ${p.name}`);
@@ -1777,6 +1801,11 @@ function addToCartDetail(id) {
 function addToCart(id) {
   const p = products.find(x => x.id === id);
   const ex = cart.find(x => x.id === id);
+  const enCarrito = ex ? ex.qty : 0;
+  if (p.stock !== null && enCarrito + 1 > p.stock) {
+    toast(`Solo hay ${p.stock} disponible${p.stock !== 1 ? 's' : ''}`);
+    return;
+  }
   if (ex) ex.qty += 1; else cart.push({ ...p, qty: 1 });
   updateBadge();
   toast(`Agregado: ${p.name}`);
@@ -1793,10 +1822,14 @@ function addToCart(id) {
 function changeCartQty(id, delta) {
   const item = cart.find(x => x.id === id);
   if (!item) return;
+  if (delta > 0 && item.stock !== null && item.qty + 1 > item.stock) {
+    toast(`Solo hay ${item.stock} disponible${item.stock !== 1 ? 's' : ''}`);
+    return;
+  }
   item.qty = Math.max(0, item.qty + delta);
   if (item.qty === 0) cart = cart.filter(x => x.id !== id);
   updateBadge();
-  renderCart(); // Re-renderiza el carrito para mostrar los cambios
+  renderCart();
 }
 
 /*

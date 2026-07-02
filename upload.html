@@ -1,117 +1,713 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>JAKAY'U — Subir archivos</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAKAY'U — Admin</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #1a0f0a; color: #d9bfa3; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .card { background: #2c1810; border: 1px solid #5c3d2e; border-radius: 20px; padding: 40px; width: 480px; }
-    h1 { font-size: 20px; color: #c49a6c; margin-bottom: 6px; }
-    p  { font-size: 13px; color: #8b6f5e; margin-bottom: 28px; }
-    .dropzone {
-      border: 2px dashed #5c3d2e; border-radius: 14px; padding: 48px 20px;
+    :root {
+      --bg:      #0f0705;
+      --surface: #1a0f0a;
+      --card:    #2c1810;
+      --border:  #3d2b1f;
+      --border2: #5c3d2e;
+      --accent:  #c49a6c;
+      --accent2: #d9bfa3;
+      --muted:   #8b6f5e;
+      --text:    #e8d5c0;
+      --green:   #27ae60;
+      --red:     #c0392b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 28px; display: flex; align-items: center; gap: 28px; height: 58px; position: sticky; top: 0; z-index: 100;
+    }
+    .logo-admin { font-size: 17px; font-weight: 800; color: var(--accent); letter-spacing: .5px; white-space: nowrap; }
+    .tabs { display: flex; gap: 2px; flex: 1; }
+    .tab { padding: 8px 16px; border: none; background: none; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; transition: background .15s, color .15s; }
+    .tab:hover { background: var(--border); color: var(--accent2); }
+    .tab.active { background: var(--border2); color: var(--accent); }
+    .header-reload { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all .15s; }
+    .header-reload:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── Content ── */
+    .content { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Section head ── */
+    .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .section-head h2 { font-size: 18px; font-weight: 700; color: var(--accent2); }
+    .btn-primary { background: var(--accent); color: #1a0f0a; border: none; padding: 9px 18px; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer; transition: background .15s; white-space: nowrap; }
+    .btn-primary:hover { background: var(--accent2); }
+
+    /* ── Table ── */
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--surface); padding: 11px 16px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(196,154,108,.03); }
+    .prod-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; display: block; }
+    .prod-thumb-empty { width: 44px; height: 44px; border-radius: 8px; background: var(--border); display: flex; align-items: center; justify-content: center; color: var(--border2); font-size: 20px; }
+    .cat-badge { background: var(--border); color: var(--accent); font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 700; white-space: nowrap; }
+    .price-cell { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: 12px; }
+    .stock-cell { color: var(--muted); font-size: 12px; }
+    .name-cell { font-weight: 600; color: var(--accent2); max-width: 200px; }
+
+    /* ── Toggle ── */
+    .toggle { position: relative; width: 34px; height: 19px; cursor: pointer; display: inline-block; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--border2); border-radius: 20px; transition: background .2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 13px; height: 13px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform .2s; }
+    .toggle input:checked + .toggle-slider { background: var(--green); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(15px); }
+
+    /* ── Action buttons ── */
+    .actions { display: flex; gap: 5px; }
+    .btn-icon { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 5px 10px; font-size: 11px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-icon.danger:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Overlay + Drawer ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 900; display: none; }
+    .overlay.open { display: block; }
+    .drawer {
+      position: fixed; right: -560px; top: 0; width: 560px; height: 100vh;
+      background: var(--card); border-left: 1px solid var(--border2);
+      z-index: 901; transition: right .28s cubic-bezier(.4,0,.2,1);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .drawer.open { right: 0; }
+    .drawer-header { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .drawer-header h3 { font-size: 16px; font-weight: 700; color: var(--accent2); }
+    .close-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all .15s; line-height: 1; }
+    .close-btn:hover { color: var(--text); background: var(--border); }
+    .drawer-body { padding: 24px 28px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+    .drawer-footer { padding: 18px 28px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
+
+    /* ── Form fields ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); }
+    input[type=text], input[type=number], textarea, select {
+      background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+      padding: 9px 13px; border-radius: 9px; font-size: 13px; font-family: inherit;
+      outline: none; transition: border-color .15s; width: 100%;
+    }
+    input[type=text]:focus, input[type=number]:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 85px; line-height: 1.5; }
+    select option { background: var(--card); }
+    .check-row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .check-label { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--accent2); cursor: pointer; }
+    .check-label input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+
+    /* ── Image upload ── */
+    .img-upload-zone {
+      border: 2px dashed var(--border2); border-radius: 11px; padding: 20px 16px;
       text-align: center; cursor: pointer; transition: border-color .2s, background .2s;
     }
-    .dropzone:hover, .dropzone.over { border-color: #c49a6c; background: rgba(196,154,108,.07); }
-    .dropzone input { display: none; }
-    .dropzone-icon { font-size: 40px; margin-bottom: 12px; }
-    .dropzone-label { font-size: 14px; color: #a0714a; }
-    .dropzone-sub { font-size: 12px; color: #5c3d2e; margin-top: 6px; }
-    .progress { margin-top: 20px; display: none; }
-    .bar-bg { background: #3d2b1f; border-radius: 6px; height: 8px; overflow: hidden; }
-    .bar { background: #c49a6c; height: 100%; width: 0%; transition: width .2s; border-radius: 6px; }
-    .status { font-size: 13px; color: #8b6f5e; margin-top: 10px; }
-    .result {
-      margin-top: 20px; background: #1a0f0a; border: 1px solid #3d2b1f;
-      border-radius: 10px; padding: 16px; display: none;
+    .img-upload-zone:hover, .img-upload-zone.over { border-color: var(--accent); background: rgba(196,154,108,.05); }
+    .img-upload-zone p { font-size: 13px; color: var(--muted); margin-top: 5px; }
+    .img-upload-zone small { font-size: 11px; color: var(--border2); }
+    .img-previews { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 10px; }
+    .img-preview-item { position: relative; width: 76px; height: 76px; border-radius: 9px; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
+    .img-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-remove { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,.75); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .img-uploading { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+    /* Model upload row */
+    .model-row { display: flex; gap: 8px; align-items: flex-end; }
+    .model-row input { flex: 1; }
+    .btn-upload-model { background: var(--border2); border: none; color: var(--accent); padding: 9px 13px; border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
+    .btn-upload-model:hover { background: var(--border); }
+
+    /* ── Drawer buttons ── */
+    .btn-save { flex: 1; background: var(--accent); color: #1a0f0a; border: none; padding: 12px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background .15s; }
+    .btn-save:hover { background: var(--accent2); }
+    .btn-save:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-cancel { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 12px 18px; border-radius: 9px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all .15s; }
+    .btn-cancel:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 26px; right: 26px; background: var(--card); color: var(--accent2); border: 1px solid var(--border2); padding: 12px 18px; border-radius: 11px; font-size: 13px; font-weight: 700; box-shadow: 0 8px 28px rgba(0,0,0,.4); transform: translateY(100px); opacity: 0; transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s; z-index: 9999; pointer-events: none; max-width: 300px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.err { border-color: var(--red); color: #e57373; }
+
+    /* ── States ── */
+    .loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: var(--muted); font-size: 13px; gap: 10px; }
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 13px; }
+    .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+    @media (max-width: 640px) {
+      .drawer { width: 100%; right: -100%; }
+      .field-row, .field-row3 { grid-template-columns: 1fr; }
+      th.hide-mobile, td.hide-mobile { display: none; }
     }
-    .result label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #5c3d2e; display: block; margin-bottom: 8px; }
-    .url-box { display: flex; gap: 8px; align-items: center; }
-    .url-box input { flex: 1; background: #2c1810; border: 1px solid #5c3d2e; color: #d9bfa3; border-radius: 8px; padding: 9px 12px; font-size: 12px; font-family: monospace; }
-    .copy-btn { background: #c49a6c; color: #1a0f0a; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap; }
-    .copy-btn:hover { background: #d9bfa3; }
-    .tip { margin-top: 14px; font-size: 11px; color: #5c3d2e; line-height: 1.6; }
-    .tip strong { color: #a0714a; }
   </style>
 </head>
 <body>
-<div class="card">
-  <h1>Subir archivos</h1>
-  <p>Modelos 3D (.glb) e imágenes (.jpg, .png, .webp)</p>
 
-  <div class="dropzone" id="drop" onclick="document.getElementById('file-input').click()">
-    <input type="file" id="file-input" accept=".glb,.gltf,.jpg,.jpeg,.png,.webp">
-    <div class="dropzone-icon">📦</div>
-    <div class="dropzone-label">Arrastrá el archivo acá o hacé clic para elegir</div>
-    <div class="dropzone-sub">.glb · .jpg · .png · .webp</div>
+<header>
+  <span class="logo-admin">JAKAY'U Admin</span>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('products', this)">Productos</button>
+    <button class="tab" onclick="switchTab('categories', this)">Categorías</button>
   </div>
+  <button class="header-reload" onclick="loadAll()">↻ Actualizar</button>
+</header>
 
-  <div class="progress" id="progress">
-    <div class="bar-bg"><div class="bar" id="bar"></div></div>
-    <div class="status" id="status">Subiendo…</div>
-  </div>
-
-  <div class="result" id="result">
-    <label>URL del archivo — pegala en Notion</label>
-    <div class="url-box">
-      <input type="text" id="url-out" readonly>
-      <button class="copy-btn" onclick="copyURL()">Copiar</button>
+<div class="content">
+  <!-- Productos -->
+  <div class="section active" id="tab-products">
+    <div class="section-head">
+      <h2 id="products-title">Productos</h2>
+      <button class="btn-primary" onclick="openProductForm(null)">+ Nuevo producto</button>
     </div>
-    <p class="tip">Pegá esta URL en Notion en el campo <strong>Modelo 3D</strong> (para .glb) o <strong>Imagen URL</strong> (para fotos).</p>
+    <div class="table-wrap" id="products-table">
+      <div class="loading">Cargando…</div>
+    </div>
+  </div>
+
+  <!-- Categorías -->
+  <div class="section" id="tab-categories">
+    <div class="section-head">
+      <h2 id="categories-title">Categorías</h2>
+      <button class="btn-primary" onclick="openCategoryForm(null)">+ Nueva categoría</button>
+    </div>
+    <div class="table-wrap" id="categories-table">
+      <div class="loading">Cargando…</div>
+    </div>
   </div>
 </div>
 
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- ── Drawer: Producto ─────────────────────────────────────── -->
+<div class="drawer" id="product-drawer">
+  <div class="drawer-header">
+    <h3 id="prod-form-title">Nuevo producto</h3>
+    <button class="close-btn" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <input type="hidden" id="prod-id">
+
+    <div class="field">
+      <label>Nombre *</label>
+      <input type="text" id="prod-name" placeholder="Guampa artesanal de palo santo">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Categoría</label>
+        <select id="prod-cat">
+          <option value="">Sin categoría</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Badge</label>
+        <input type="text" id="prod-badge" placeholder="Más vendido">
+      </div>
+    </div>
+
+    <div class="field-row3">
+      <div class="field">
+        <label>Precio (Gs.) *</label>
+        <input type="number" id="prod-price" placeholder="85000" min="0">
+      </div>
+      <div class="field">
+        <label>Precio anterior (Gs.)</label>
+        <input type="number" id="prod-price-old" placeholder="100000" min="0">
+      </div>
+      <div class="field">
+        <label>Stock</label>
+        <input type="number" id="prod-stock" placeholder="Sin límite" min="0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Descripción</label>
+      <textarea id="prod-desc" placeholder="Descripción del producto…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Imágenes</label>
+      <div class="img-upload-zone" id="img-zone" onclick="document.getElementById('img-input').click()">
+        <input type="file" id="img-input" accept=".jpg,.jpeg,.png,.webp" multiple style="display:none">
+        <div style="font-size:26px;margin-bottom:6px">🖼</div>
+        <p>Arrastrá fotos acá o hacé clic para elegir</p>
+        <small>.jpg · .png · .webp — podés subir varias</small>
+      </div>
+      <div class="img-previews" id="img-previews"></div>
+    </div>
+
+    <div class="field">
+      <label>Modelo 3D (.glb)</label>
+      <div class="model-row">
+        <input type="text" id="prod-model" placeholder="https://...vercel-storage.com/modelo.glb">
+        <input type="file" id="model-input" accept=".glb,.gltf" style="display:none">
+        <button class="btn-upload-model" onclick="document.getElementById('model-input').click()">↑ Subir</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field">
+      <label>Estado</label>
+      <div class="check-row">
+        <label class="check-label">
+          <input type="checkbox" id="prod-disponible" checked> Disponible en la tienda
+        </label>
+        <label class="check-label">
+          <input type="checkbox" id="prod-destacado"> Destacado
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn-cancel" onclick="closeDrawer()">Cancelar</button>
+    <button class="btn-save" id="btn-save-prod" onclick="saveProduct()">Guardar producto</button>
+  </div>
+</div>
+
+<!-- ── Drawer: Categoría ────────────────────────────────────── -->
+<div class="drawer" id="cat-drawer">
+  <div class="drawer-header">
+    <h3 id="cat-form-title">Nueva categoría</h3>
+    <button class="close-btn" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <input type="hidden" id="cat-id">
+    <div class="field">
+      <label>Nombre *</label>
+      <input type="text" id="cat-name" placeholder="Guampas" oninput="autoSlug()">
+    </div>
+    <div class="field">
+      <label>Slug *</label>
+      <input type="text" id="cat-slug" placeholder="guampas">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Orden</label>
+        <input type="number" id="cat-order" placeholder="1" min="0">
+      </div>
+      <div class="field" style="justify-content:flex-end;padding-top:20px">
+        <label class="check-label">
+          <input type="checkbox" id="cat-active" checked> Activa
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn-cancel" onclick="closeDrawer()">Cancelar</button>
+    <button class="btn-save" id="btn-save-cat" onclick="saveCategory()">Guardar categoría</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-  const drop = document.getElementById('drop');
-  const input = document.getElementById('file-input');
+// ── Estado global ─────────────────────────────────────────────
+let products   = [];
+let categories = [];
+let currentImgs = []; // URLs de imágenes en el form activo
 
-  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); upload(e.dataTransfer.files[0]); });
-  input.addEventListener('change', () => upload(input.files[0]));
+// ── Helpers ───────────────────────────────────────────────────
+function fmt(n) {
+  return 'Gs. ' + Number(n).toLocaleString('es-PY');
+}
 
-  async function upload(file) {
-    if (!file) return;
-    document.getElementById('progress').style.display = 'block';
-    document.getElementById('result').style.display = 'none';
-    document.getElementById('bar').style.width = '0%';
-    document.getElementById('status').textContent = `Subiendo ${file.name}…`;
+let _toastTimer;
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isError ? ' err' : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
 
-    // Simula barra de progreso mientras sube
-    let pct = 0;
-    const tick = setInterval(() => {
-      pct = Math.min(pct + Math.random() * 15, 90);
-      document.getElementById('bar').style.width = pct + '%';
-    }, 200);
+async function apiFetch(method, resource, data, id) {
+  const url = '/api/admin?resource=' + resource + (id ? '&id=' + id : '');
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (data) opts.body = JSON.stringify(data);
+  const res = await fetch(url, opts);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
+  return json;
+}
 
-    try {
-      const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-        method: 'POST',
-        body: file,
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      });
-      clearInterval(tick);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al subir');
+// ── Tabs ──────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
 
-      document.getElementById('bar').style.width = '100%';
-      document.getElementById('status').textContent = '¡Listo!';
-      document.getElementById('url-out').value = data.url;
-      document.getElementById('result').style.display = 'block';
-    } catch (err) {
-      clearInterval(tick);
-      document.getElementById('status').textContent = 'Error: ' + err.message;
+// ── Carga de datos ────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadProducts(), loadCategories()]);
+}
+
+async function loadProducts() {
+  document.getElementById('products-table').innerHTML = '<div class="loading">Cargando…</div>';
+  try {
+    products = await apiFetch('GET', 'products');
+    renderProducts();
+  } catch (e) {
+    document.getElementById('products-table').innerHTML = '<div class="empty">Error al cargar: ' + e.message + '</div>';
+  }
+}
+
+async function loadCategories() {
+  document.getElementById('categories-table').innerHTML = '<div class="loading">Cargando…</div>';
+  try {
+    categories = await apiFetch('GET', 'categories');
+    renderCategories();
+    populateCatSelect();
+  } catch (e) {
+    document.getElementById('categories-table').innerHTML = '<div class="empty">Error al cargar: ' + e.message + '</div>';
+  }
+}
+
+function populateCatSelect() {
+  document.getElementById('prod-cat').innerHTML =
+    '<option value="">Sin categoría</option>' +
+    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+// ── Render: Productos ─────────────────────────────────────────
+function renderProducts() {
+  document.getElementById('products-title').textContent = `Productos (${products.length})`;
+  if (!products.length) {
+    document.getElementById('products-table').innerHTML = '<div class="empty">No hay productos todavía</div>';
+    return;
+  }
+  const catMap = Object.fromEntries(categories.map(c => [c.id, c.name]));
+  document.getElementById('products-table').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Foto</th>
+        <th>Nombre</th>
+        <th class="hide-mobile">Categoría</th>
+        <th>Precio</th>
+        <th class="hide-mobile">Stock</th>
+        <th>Activo</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        ${products.map(p => `
+          <tr>
+            <td>${p.img
+              ? `<img class="prod-thumb" src="${p.img}" alt="">`
+              : `<div class="prod-thumb-empty">📦</div>`}</td>
+            <td class="name-cell">${esc(p.name)}</td>
+            <td class="hide-mobile">
+              ${p.categoryId && catMap[p.categoryId]
+                ? `<span class="cat-badge">${esc(catMap[p.categoryId])}</span>`
+                : '<span style="color:var(--muted)">—</span>'}
+            </td>
+            <td class="price-cell">${fmt(p.price)}</td>
+            <td class="stock-cell hide-mobile">${p.stock !== null ? p.stock : '∞'}</td>
+            <td>
+              <label class="toggle">
+                <input type="checkbox" ${p.disponible ? 'checked' : ''}
+                  onchange="toggleDisponible('${p.id}', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="btn-icon" onclick="openProductForm('${p.id}')">✏ Editar</button>
+                <button class="btn-icon danger" onclick="archiveProduct('${p.id}', '${esc(p.name).replace(/'/g, "\\'")}')">🗑</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── Render: Categorías ────────────────────────────────────────
+function renderCategories() {
+  document.getElementById('categories-title').textContent = `Categorías (${categories.length})`;
+  if (!categories.length) {
+    document.getElementById('categories-table').innerHTML = '<div class="empty">No hay categorías todavía</div>';
+    return;
+  }
+  document.getElementById('categories-table').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Nombre</th><th>Slug</th><th class="hide-mobile">Orden</th><th>Activa</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${categories.map(c => `
+          <tr>
+            <td style="font-weight:600;color:var(--accent2)">${esc(c.name)}</td>
+            <td style="color:var(--muted);font-family:monospace;font-size:12px">${esc(c.slug)}</td>
+            <td class="hide-mobile" style="color:var(--muted)">${c.order}</td>
+            <td>
+              <label class="toggle">
+                <input type="checkbox" ${c.active ? 'checked' : ''}
+                  onchange="toggleCatActive('${c.id}', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="btn-icon" onclick="openCategoryForm('${c.id}')">✏ Editar</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Drawer ────────────────────────────────────────────────────
+function openDrawer(id) {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById(id).classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+}
+
+// ── Form: Producto ────────────────────────────────────────────
+function openProductForm(id) {
+  const p = id ? products.find(x => x.id === id) : null;
+  document.getElementById('prod-form-title').textContent = p ? 'Editar producto' : 'Nuevo producto';
+  document.getElementById('prod-id').value        = p?.id           || '';
+  document.getElementById('prod-name').value      = p?.name         || '';
+  document.getElementById('prod-badge').value     = p?.badge        || '';
+  document.getElementById('prod-price').value     = p?.price        || '';
+  document.getElementById('prod-price-old').value = p?.priceOld     || '';
+  document.getElementById('prod-stock').value     = p?.stock ?? '';
+  document.getElementById('prod-desc').value      = p?.description  || '';
+  document.getElementById('prod-model').value     = p?.model        || '';
+  document.getElementById('prod-disponible').checked = p ? p.disponible : true;
+  document.getElementById('prod-destacado').checked  = p?.destacado || false;
+  document.getElementById('prod-cat').value = p?.categoryId || '';
+
+  currentImgs = p?.imgs?.length ? [...p.imgs] : (p?.img ? [p.img] : []);
+  renderImgPreviews();
+
+  openDrawer('product-drawer');
+  setTimeout(() => document.getElementById('prod-name').focus(), 300);
+}
+
+function renderImgPreviews() {
+  document.getElementById('img-previews').innerHTML = currentImgs.map((url, i) =>
+    `<div class="img-preview-item">
+      ${url
+        ? `<img src="${url}" alt=""><button class="img-remove" onclick="removeImg(${i})">✕</button>`
+        : `<div class="img-uploading">↑</div>`}
+    </div>`
+  ).join('');
+}
+
+function removeImg(i) {
+  currentImgs.splice(i, 1);
+  renderImgPreviews();
+}
+
+async function uploadImg(file) {
+  const idx = currentImgs.length;
+  currentImgs.push(null);
+  renderImgPreviews();
+  try {
+    const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+      method: 'POST', body: file,
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    currentImgs[idx] = d.url;
+  } catch (e) {
+    currentImgs.splice(idx, 1);
+    showToast('Error al subir imagen: ' + e.message, true);
+  }
+  renderImgPreviews();
+}
+
+async function uploadModel(file) {
+  showToast('Subiendo modelo 3D…');
+  try {
+    const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+      method: 'POST', body: file,
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    document.getElementById('prod-model').value = d.url;
+    showToast('Modelo subido');
+  } catch (e) {
+    showToast('Error al subir modelo: ' + e.message, true);
+  }
+}
+
+async function saveProduct() {
+  const id    = document.getElementById('prod-id').value;
+  const name  = document.getElementById('prod-name').value.trim();
+  const price = parseFloat(document.getElementById('prod-price').value);
+  if (!name)  return showToast('El nombre es obligatorio', true);
+  if (!price) return showToast('El precio es obligatorio', true);
+  if (currentImgs.includes(null)) return showToast('Esperá a que terminen de subir las imágenes', true);
+
+  const btn = document.getElementById('btn-save-prod');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+
+  try {
+    const stockVal = document.getElementById('prod-stock').value;
+    const data = {
+      name,
+      categoryId:  document.getElementById('prod-cat').value    || null,
+      price,
+      priceOld:    parseFloat(document.getElementById('prod-price-old').value) || null,
+      stock:       stockVal !== '' ? parseInt(stockVal) : null,
+      badge:       document.getElementById('prod-badge').value.trim() || null,
+      description: document.getElementById('prod-desc').value.trim(),
+      model:       document.getElementById('prod-model').value.trim() || null,
+      disponible:  document.getElementById('prod-disponible').checked,
+      destacado:   document.getElementById('prod-destacado').checked,
+      imgs:        currentImgs.filter(Boolean),
+    };
+    if (id) {
+      await apiFetch('PATCH', 'products', data, id);
+      showToast('Producto actualizado');
+    } else {
+      await apiFetch('POST', 'products', data);
+      showToast('Producto creado');
     }
+    closeDrawer();
+    await loadProducts();
+  } catch (e) {
+    showToast(e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar producto';
   }
+}
 
-  function copyURL() {
-    const input = document.getElementById('url-out');
-    navigator.clipboard.writeText(input.value);
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = '¡Copiado!';
-    setTimeout(() => btn.textContent = 'Copiar', 1500);
+async function toggleDisponible(id, val) {
+  try {
+    await apiFetch('PATCH', 'products', { disponible: val }, id);
+  } catch (e) {
+    showToast(e.message, true);
+    await loadProducts();
   }
+}
+
+async function archiveProduct(id, name) {
+  if (!confirm(`¿Archivar "${name}"?\nSe ocultará de Notion (no se borra).`)) return;
+  try {
+    await apiFetch('DELETE', 'products', null, id);
+    showToast('Producto archivado');
+    await loadProducts();
+  } catch (e) {
+    showToast(e.message, true);
+  }
+}
+
+// ── Form: Categoría ───────────────────────────────────────────
+function openCategoryForm(id) {
+  const c = id ? categories.find(x => x.id === id) : null;
+  document.getElementById('cat-form-title').textContent = c ? 'Editar categoría' : 'Nueva categoría';
+  document.getElementById('cat-id').value    = c?.id    || '';
+  document.getElementById('cat-name').value  = c?.name  || '';
+  document.getElementById('cat-slug').value  = c?.slug  || '';
+  document.getElementById('cat-order').value = c?.order ?? '';
+  document.getElementById('cat-active').checked = c ? c.active : true;
+  openDrawer('cat-drawer');
+  setTimeout(() => document.getElementById('cat-name').focus(), 300);
+}
+
+function autoSlug() {
+  const name = document.getElementById('cat-name').value;
+  document.getElementById('cat-slug').value = name
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+async function saveCategory() {
+  const id   = document.getElementById('cat-id').value;
+  const name = document.getElementById('cat-name').value.trim();
+  const slug = document.getElementById('cat-slug').value.trim();
+  if (!name || !slug) return showToast('Nombre y slug son obligatorios', true);
+
+  const btn = document.getElementById('btn-save-cat');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const data = {
+      name, slug,
+      order:  parseInt(document.getElementById('cat-order').value) || 0,
+      active: document.getElementById('cat-active').checked,
+    };
+    if (id) {
+      await apiFetch('PATCH', 'categories', data, id);
+      showToast('Categoría actualizada');
+    } else {
+      await apiFetch('POST', 'categories', data);
+      showToast('Categoría creada');
+    }
+    closeDrawer();
+    await loadCategories();
+  } catch (e) {
+    showToast(e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar categoría';
+  }
+}
+
+async function toggleCatActive(id, val) {
+  try {
+    await apiFetch('PATCH', 'categories', { active: val }, id);
+  } catch (e) {
+    showToast(e.message, true);
+    await loadCategories();
+  }
+}
+
+// ── Event listeners ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Imágenes — drop zone
+  const zone = document.getElementById('img-zone');
+  const imgInput = document.getElementById('img-input');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('over');
+    [...e.dataTransfer.files].forEach(uploadImg);
+  });
+  imgInput.addEventListener('change', () => {
+    [...imgInput.files].forEach(uploadImg);
+    imgInput.value = '';
+  });
+
+  // Modelo 3D — upload
+  document.getElementById('model-input').addEventListener('change', e => {
+    if (e.target.files[0]) uploadModel(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  // Cerrar drawer con Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────
+loadAll();
 </script>
 </body>
 </html>

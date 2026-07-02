@@ -148,10 +148,12 @@ module.exports = async function handler(req, res) {
       //
       // Primero intentamos la Opción A. Si no hay foto subida,
       // usamos la Opción B. Si tampoco hay, img queda null.
-      const fotoFile = p.Foto?.files?.[0];
-      const img = fotoFile
-        ? (fotoFile.type === 'external' ? fotoFile.external.url : fotoFile.file.url)
-        : (p['Imagen URL']?.url || null);
+      const fotoFiles = p.Foto?.files || [];
+      const imgs = fotoFiles.map(f =>
+        f.type === 'external' ? f.external.url : f.file.url
+      );
+      if (imgs.length === 0 && p['Imagen URL']?.url) imgs.push(p['Imagen URL'].url);
+      const img = imgs[0] || null;
 
       // Devolvemos el producto con solo los campos que necesita la web
       return {
@@ -161,7 +163,8 @@ module.exports = async function handler(req, res) {
         price:       p.Precio?.number                           || 0,  // Precio en Guaraníes
         description: p['Descripción']?.rich_text[0]?.plain_text || '', // Descripción larga
         badge:       p.Badge?.rich_text[0]?.plain_text          || null, // Etiqueta (ej: "Más vendido")
-        img,                                                           // URL de la imagen
+        img,                                                           // Primera imagen (para la grilla)
+        imgs,                                                          // Todas las imágenes (para la galería del detalle)
         model:       p['Modelo 3D']?.url                        || null, // URL del modelo .glb (opcional)
         destacado:   p.Destacado?.checkbox                      || false, // ¿Aparece destacado?
         stock:       p.Stock?.number                            ?? null,  // Unidades disponibles (null = sin control)
