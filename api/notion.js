@@ -87,42 +87,24 @@ module.exports = async function handler(req, res) {
     // Filtramos solo las que tienen el checkbox "Activa" = true,
     // así podés desactivar categorías desde Notion sin borrarlas.
     // Las ordenamos por el campo "Orden" (número) de menor a mayor.
-    const catData = await notionQuery(CAT_DB, {
-      filter: { property: 'Activa', checkbox: { equals: true } },
-      sorts:  [{ property: 'Orden', direction: 'ascending' }],
-    });
+    const [catData, prodData] = await Promise.all([
+      notionQuery(CAT_DB, {
+        filter: { property: 'Activa',     checkbox: { equals: true } },
+        sorts:  [{ property: 'Orden',  direction: 'ascending' }],
+      }),
+      notionQuery(PROD_DB, {
+        filter: { property: 'Disponible', checkbox: { equals: true } },
+        sorts:  [{ property: 'Nombre', direction: 'ascending' }],
+      }),
+    ]);
 
-    // Transformamos la respuesta de Notion (que es muy verbose)
-    // a un objeto simple con solo los datos que necesitamos.
-    // Notion devuelve cada campo adentro de "properties" con
-    // su tipo (title, rich_text, number, etc.)
     const categories = catData.results.map(r => ({
-      id:   r.id,   // ID único de la página en Notion (lo usamos para vincular productos)
-      name: r.properties.Nombre.title[0]?.plain_text    || '', // Ej: "Guampas"
-      slug: r.properties.Slug.rich_text[0]?.plain_text  || '', // Ej: "guampas" (para filtrar en la web)
+      id:   r.id,
+      name: r.properties.Nombre.title[0]?.plain_text    || '',
+      slug: r.properties.Slug.rich_text[0]?.plain_text  || '',
     }));
 
-    // ── PASO 2: Crear mapa de ID → slug ─────────────────────
-    //
-    // Los productos en Notion guardan la categoría como una
-    // "relación" (relation), que es simplemente el ID de la
-    // página de la categoría. Necesitamos convertir ese ID
-    // al slug legible (ej: "guampas") para usarlo en la web.
-    //
-    // Este objeto queda así: { "388459f1-...": "guampas", ... }
     const catMap = Object.fromEntries(categories.map(c => [c.id, c.slug]));
-
-
-    // ── PASO 3: Obtener Productos ────────────────────────────
-    //
-    // Consultamos la base "Productos" de Notion.
-    // Filtramos solo los que tienen "Disponible" = true,
-    // así podés ocultar productos temporalmente desde Notion.
-    // Los ordenamos alfabéticamente por nombre.
-    const prodData = await notionQuery(PROD_DB, {
-      filter: { property: 'Disponible', checkbox: { equals: true } },
-      sorts:  [{ property: 'Nombre', direction: 'ascending' }],
-    });
 
     // Transformamos cada producto a un objeto simple
     const products = prodData.results.map(r => {
@@ -181,7 +163,7 @@ module.exports = async function handler(req, res) {
     // sin volver a consultar Notion (más rápido).
     // Después de 60s, sirve la caché mientras renueva en segundo plano
     // (stale-while-revalidate=300 = hasta 5 minutos).
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
 
     // Enviamos las categorías y productos juntos en un solo JSON
     res.json({ categories, products });

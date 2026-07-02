@@ -50,23 +50,16 @@
 
   <title>JAKAY'U — Tienda mateira</title>
 
-  <!-- Preconnect: le dice al navegador que se conecte anticipadamente
-       a los servidores de Google Fonts para que las fuentes
-       carguen más rápido cuando las pidamos abajo. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com" crossorigin>
 
-  <!-- Fuentes tipográficas de Google Fonts:
-       - Playfair Display: fuente serif elegante, usada en títulos y precios
-       - Lato: fuente sans-serif limpia, usada en textos y botones
-       Cargamos distintos pesos (300=ligero, 400=normal, 700=negrita, 800=extranegrita)
-       e itálica para Playfair Display. -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@400;500;600;700&family=Raleway:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-  <!-- Model Viewer: librería de Google para mostrar modelos 3D (.glb)
-       en el navegador con rotación automática y controles de cámara.
-       Se carga como "module" porque usa ES Modules internamente. -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <!-- Fuentes no bloqueantes: preload + swap en onload para no bloquear el render -->
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400;1,700&family=Montserrat:wght@400;700&family=Raleway:wght@300;400;700&display=swap">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400;1,700&family=Montserrat:wght@400;700&family=Raleway:wght@300;400;700&display=swap">
+  </noscript>
   <style>
     /*
      * Reset universal: elimina el margen, padding y borde que los
@@ -1141,7 +1134,7 @@
   <div class="carousel" id="carousel">
     <div class="carousel-track" id="carousel-track">
       <div class="carousel-slide">
-        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg" alt="JAKAY'U" loading="eager">
+        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg" alt="JAKAY'U" loading="eager" fetchpriority="high">
       </div>
       <div class="carousel-slide">
         <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-b.jpg" alt="JAKAY'U" loading="lazy">
@@ -1639,15 +1632,24 @@ function cardHTML(p) {
  *   - Selector de cantidad (+/-)
  *   - Botón "Agregar al carrito"
  */
+function loadModelViewerScript() {
+  if (window._mvLoaded) return;
+  window._mvLoaded = true;
+  const s = document.createElement('script');
+  s.type = 'module';
+  s.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+  document.head.appendChild(s);
+}
+
 function renderProductDetail(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
   detailQty = 1;
   currentDetailStock = p.stock ?? null;
 
-  const has3D = !!p.model; // true si el producto tiene modelo 3D en Notion
+  const has3D = !!p.model;
+  if (has3D) loadModelViewerScript();
 
-  // Botón 3D en los thumbnails (solo si hay modelo .glb)
   const thumb3D = has3D ? `
     <div class="thumb thumb-3d ${!allImgs.length ? 'active' : ''}" onclick="show3D(this)" title="Vista 3D" style="display:flex;align-items:center;justify-content:center;">
       <div class="t3d-icon">⬡</div>
@@ -2159,29 +2161,22 @@ async function loadFromNotion() {
      4. Actualiza el badge del carrito (empieza en 0)
 ════════════════════════════════════════════════════════════ */
 async function init() {
-  await loadFromNotion(); // Esperamos a tener los datos antes de renderizar
+  const t0 = Date.now();
+  await loadFromNotion();
   renderCategoryNav();
   renderProducts();
   updateBadge();
+  // Ocultar splash: mínimo 2s para que la animación CSS termine; si Notion tardó más, ocultar ya
+  const wait = Math.max(0, 2000 - (Date.now() - t0));
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    splash.classList.add('hide');
+    setTimeout(() => splash.remove(), 950);
+  }, wait);
 }
 
-init(); // ← Arrancamos todo
-
-
-/* ─── SPLASH (pantalla de carga inicial) ───────────────────
- * Oculta el splash después de 3 segundos.
- * El splash tiene una animación CSS (fade-up, steam-rise)
- * que se reproduce durante esos 3 segundos.
- *
- * Primero agrega la clase 'hide' (que tiene transition: opacity)
- * para un fade out suave. Después de 950ms (duración del fade),
- * elimina el elemento del DOM completamente para liberar memoria.
- */
-setTimeout(() => {
-  const splash = document.getElementById('splash');
-  splash.classList.add('hide');
-  setTimeout(() => splash.remove(), 950);
-}, 3000);
+init();
 </script>
 </body>
 </html>
