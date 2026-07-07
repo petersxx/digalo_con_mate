@@ -1273,12 +1273,10 @@
    - notionProxy: URL del endpoint que conecta con Notion
 ════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  whatsappNumber: '595991230966', // ← Cambiá por el número real
-  banco:    'Banco Continental',
-  titular:  'Solar Guaraní S.R.L.',
-  cuenta:   '0001-0123456-7',
-  alias:    'SOLAR.GUARANI',
-  ruc:      '80012345-6',
+  whatsappNumber: '595983955559',
+  banco:    'Familiar',
+  titular:  'HUGO MENDIETA',
+  alias:    '0981302714',
   moneda:   'Gs.', // Guaraníes paraguayos
   notionProxy: '/api/notion', // No cambiar — es la URL de nuestra API
 };
@@ -1939,10 +1937,9 @@ function renderCheckout() {
     ? `\n\n🏦 *Para confirmar la compra, realizar la transferencia a:*\n` +
       `Banco: ${CONFIG.banco}\n` +
       `Titular: ${CONFIG.titular}\n` +
-      `N.° de cuenta: ${CONFIG.cuenta}\n` +
       (CONFIG.alias ? `Alias: ${CONFIG.alias}\n` : '') +
-      (CONFIG.ruc   ? `RUC: ${CONFIG.ruc}\n`     : '') +
-      `Monto exacto: *${fmt(total)}*`
+      `Monto exacto: *${fmt(total)}*\n` +
+      `(al realizar la transferencia adjuntar comprobante)`
     : '';
 
   const waText =
@@ -1970,9 +1967,7 @@ function renderCheckout() {
       <div class="bank-info">
         <div class="bank-row"><span class="bank-label">Banco</span><span class="bank-value">${CONFIG.banco}</span></div>
         <div class="bank-row"><span class="bank-label">Titular</span><span class="bank-value">${CONFIG.titular}</span></div>
-        <div class="bank-row"><span class="bank-label">N.° de cuenta</span><span class="bank-value">${CONFIG.cuenta}</span></div>
         <div class="bank-row"><span class="bank-label">Alias</span><span class="bank-value">${CONFIG.alias}</span></div>
-        <div class="bank-row"><span class="bank-label">RUC</span><span class="bank-value">${CONFIG.ruc}</span></div>
         <div class="bank-amount">
           <small>Monto exacto a transferir</small>
           <strong>${fmt(total)}</strong>
