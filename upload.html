@@ -332,11 +332,31 @@ function showToast(msg, isError = false) {
   _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
 }
 
+// ── Autenticación admin ─────────────────────────────────────────
+// El panel pide la contraseña una vez y la guarda en sessionStorage
+// para mandarla en cada pedido a /api/admin y /api/upload.
+function getAdminPassword() {
+  let pw = sessionStorage.getItem('adminPassword');
+  if (!pw) {
+    pw = prompt('Contraseña de administrador:') || '';
+    sessionStorage.setItem('adminPassword', pw);
+  }
+  return pw;
+}
+
+function adminHeaders(extra) {
+  return Object.assign({ 'x-admin-password': getAdminPassword() }, extra);
+}
+
 async function apiFetch(method, resource, data, id) {
   const url = '/api/admin?resource=' + resource + (id ? '&id=' + id : '');
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const opts = { method, headers: adminHeaders({ 'Content-Type': 'application/json' }) };
   if (data) opts.body = JSON.stringify(data);
   const res = await fetch(url, opts);
+  if (res.status === 401) {
+    sessionStorage.removeItem('adminPassword');
+    throw new Error('Contraseña incorrecta');
+  }
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
   return json;
@@ -527,8 +547,9 @@ async function uploadImg(file) {
   try {
     const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
       method: 'POST', body: file,
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      headers: adminHeaders({ 'Content-Type': file.type || 'application/octet-stream' }),
     });
+    if (res.status === 401) sessionStorage.removeItem('adminPassword');
     const d = await res.json();
     if (!res.ok) throw new Error(d.error);
     currentImgs[idx] = d.url;
@@ -544,8 +565,9 @@ async function uploadModel(file) {
   try {
     const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
       method: 'POST', body: file,
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      headers: adminHeaders({ 'Content-Type': file.type || 'application/octet-stream' }),
     });
+    if (res.status === 401) sessionStorage.removeItem('adminPassword');
     const d = await res.json();
     if (!res.ok) throw new Error(d.error);
     document.getElementById('prod-model').value = d.url;

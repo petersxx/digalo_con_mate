@@ -82,6 +82,15 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // ── Verificar contraseña de administrador ──────────────────
+  // Solo el panel admin (upload.html) puede subir archivos.
+  // La contraseña viaja en el header 'x-admin-password' y se
+  // compara contra la variable de entorno ADMIN_PASSWORD.
+  const pw = req.headers['x-admin-password'];
+  if (!pw || pw !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
   // ── Verificar que venga el nombre del archivo ──────────────
   // El nombre del archivo se manda como parámetro en la URL:
   //   /api/upload?filename=mi-guampa.glb

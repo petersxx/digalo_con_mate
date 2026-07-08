@@ -50,6 +50,15 @@ async function notionUpdate(pageId, properties, archived) {
   return d;
 }
 
+function checkAuth(req, res) {
+  const pw = req.headers['x-admin-password'];
+  if (!pw || pw !== process.env.ADMIN_PASSWORD) {
+    res.status(401).json({ error: 'No autorizado' });
+    return false;
+  }
+  return true;
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = '';
@@ -148,6 +157,7 @@ function categoryToNotion(data) {
 
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  if (!checkAuth(req, res)) return;
   const { resource, id } = req.query;
 
   try {
