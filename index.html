@@ -38,7 +38,7 @@
   ================================================================
 -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-PY">
 <head>
   <!-- Codificación de caracteres: necesario para mostrar tildes, ñ, etc. -->
   <meta charset="UTF-8" />
@@ -48,7 +48,78 @@
        "initial-scale=1.0" no hace zoom automático. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>JAKAY'U — Tienda mateira</title>
+  <!-- ── SEO — metadatos base ────────────────────────────────
+       title/description son lo que Google muestra en los
+       resultados de búsqueda. Los tags og:* y twitter:* son lo
+       que se muestra al compartir el link en WhatsApp/redes.
+       Cuando se comparte /producto/:slug, api/product.js
+       reemplaza estos mismos tags con los datos de ESE producto
+       antes de servir el HTML (por eso los valores por defecto
+       de acá son los de la home). -->
+  <title>JAKAY'U — Tienda de Mates Artesanales en Asunción, Paraguay | Guampas, Termos y Bombillas</title>
+  <meta name="description" content="JAKAY'U es una tienda de mate artesanal en Asunción, Paraguay: guampas, termos, bombillas y sets de mate. Envíos a todo el país, pedidos por WhatsApp.">
+  <meta name="keywords" content="mate, tienda de mate, guampas, termos, bombillas, yerba mate, mate paraguayo, jakay'u, jakayu, Asunción Paraguay">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="JAKAY'U">
+  <meta name="theme-color" content="#2c1810">
+  <link rel="canonical" href="https://jakay-u.com/">
+  <link rel="alternate" hreflang="es-py" href="https://jakay-u.com/">
+
+  <!-- ── Open Graph (WhatsApp, Facebook, etc.) ──────────────── -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="JAKAY'U">
+  <meta property="og:locale" content="es_PY">
+  <meta property="og:url" content="https://jakay-u.com/">
+  <meta property="og:title" content="JAKAY'U — Tienda de Mates Artesanales en Asunción, Paraguay">
+  <meta property="og:description" content="Guampas, termos, bombillas y sets de mate artesanal. Envíos a todo el país, pedidos por WhatsApp.">
+  <meta property="og:image" content="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg">
+  <meta property="og:image:alt" content="Guampas y mates artesanales JAKAY'U">
+
+  <!-- ── Twitter Card ────────────────────────────────────────── -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JAKAY'U — Tienda de Mates Artesanales en Asunción, Paraguay">
+  <meta name="twitter:description" content="Guampas, termos, bombillas y sets de mate artesanal. Envíos a todo el país, pedidos por WhatsApp.">
+  <meta name="twitter:image" content="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg">
+
+  <!-- ── Datos estructurados (Schema.org) para Google ─────────
+       Store/LocalBusiness: ayuda a aparecer en Google Maps /
+       resultados locales cuando alguien busca "tienda de mate
+       Asunción" o similar. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "JAKAY'U",
+    "alternateName": "Jakay-u",
+    "description": "Tienda de mate artesanal en Asunción, Paraguay. Guampas, termos, bombillas y sets de mate.",
+    "url": "https://jakay-u.com/",
+    "image": "https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg",
+    "telephone": "+595983955559",
+    "priceRange": "$$",
+    "currenciesAccepted": "PYG",
+    "paymentAccepted": "Transferencia bancaria",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Solar Guaraní",
+      "addressLocality": "Asunción",
+      "addressCountry": "PY"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -25.2772251,
+      "longitude": -57.6402304
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "opens": "10:00",
+      "closes": "18:00"
+    },
+    "sameAs": [
+      "https://www.instagram.com/jakayuensg/"
+    ]
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,7 +214,7 @@
       background: var(--b400);
       opacity: .5;
     }
-    .logo-text h1 {
+    .logo-text p {
       color: var(--b300);
       font-size: 20px;
       font-weight: 700;
@@ -331,7 +402,7 @@
       border-radius: 20px;
       margin-bottom: 20px;
     }
-    .carousel-content h2 {
+    .carousel-content h1 {
       font-family: 'Cormorant Garamond', serif;
       font-size: 52px;
       font-weight: 800;
@@ -340,7 +411,7 @@
       max-width: 520px;
       color: var(--white);
     }
-    .carousel-content h2 em { color: var(--b400); font-style: italic; }
+    .carousel-content h1 em { color: var(--b400); font-style: italic; }
     .carousel-content p {
       font-size: 16px;
       color: rgba(255,255,255,0.8);
@@ -417,7 +488,7 @@
 
     @media (max-width: 700px) {
       .carousel { height: 420px; }
-      .carousel-content h2 { font-size: 30px; }
+      .carousel-content h1 { font-size: 30px; }
       .carousel-arrow { width: 34px; height: 34px; }
     }
 
@@ -1020,7 +1091,7 @@
       /* header */
       .header-inner { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 10px; }
       .search-wrap  { order: 3; max-width: 100%; flex: 1 1 100%; }
-      .logo-text h1 { font-size: 15px; }
+      .logo-text p { font-size: 15px; }
       .logo-text span { display: none; }
       .logo-divider { height: 24px; }
       .logo-badge { padding: 6px 8px; }
@@ -1071,7 +1142,7 @@
     </svg>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-    <h1 class="splash-title"><em>JAKAY'U</em></h1>
+    <p class="splash-title"><em>JAKAY'U</em></p>
     <div class="splash-line"></div>
     <p class="splash-sub">Tienda de mates hecho artesanalmente</p>
   </div>
@@ -1082,7 +1153,7 @@
   <div class="header-inner">
     <div class="logo" onclick="showPage('home')">
       <div class="logo-text">
-        <h1>JAKAY'U</h1>
+        <p>JAKAY'U</p>
         <span>Tienda de mates artesanal</span>
       </div>
     </div>
@@ -1119,16 +1190,13 @@
   <div class="carousel" id="carousel">
     <div class="carousel-track" id="carousel-track">
       <div class="carousel-slide">
-        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg" alt="JAKAY'U" loading="eager" fetchpriority="high">
+        <img src="img/hero-e.jpg" alt="Amigos compartiendo mate al atardecer" loading="eager" fetchpriority="high">
       </div>
       <div class="carousel-slide">
-        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-b.jpg" alt="JAKAY'U" loading="lazy">
+        <img src="img/hero-f.jpg" alt="Tereré artesanal servido en guampa" loading="lazy">
       </div>
       <div class="carousel-slide">
-        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-c.jpg" alt="JAKAY'U" loading="lazy">
-      </div>
-      <div class="carousel-slide">
-        <img src="https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-d.jpg" alt="JAKAY'U" loading="lazy">
+        <img src="img/hero-g.jpg" alt="Cebando mate al atardecer" loading="lazy">
       </div>
     </div>
 
@@ -1136,7 +1204,7 @@
     <div class="carousel-content">
       <div class="carousel-inner">
         <span class="hero-tag">Artesanal · Tradicional · Auténtico</span>
-        <h2>El mate,<br>con toda la <em>onda</em></h2>
+        <h1>El mate,<br>con toda la <em>onda</em></h1>
         <p>Guampas artesanales, termos de primera y todo lo que necesitás para el mate perfecto.</p>
         <div class="hero-btns">
           <button class="hero-btn" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})">Ver catálogo</button>
@@ -1370,13 +1438,88 @@ function updateBadge() { document.getElementById('cart-count').textContent = car
 ════════════════════════════════════════════════════════════ */
 
 /*
- * showPage(page, id)
- * ──────────────────
+ * slugify(str) / productSlug(p)
+ * ──────────────────────────────
+ * Genera el slug de URL de un producto: nombre legible + los
+ * últimos 8 caracteres del ID de Notion (para que sea único —
+ * los IDs de esta base comparten un prefijo largo entre sí, la
+ * parte que varía está sobre el final).
+ * Ej: "Guampa Imperial" + id → "guampa-imperial-5ca21eae"
+ *
+ * Debe coincidir exactamente con la lógica de api/product.js y
+ * api/sitemap.js — si cambiás una, cambiá las tres.
+ */
+function slugify(str) {
+  return String(str).toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+function productSlug(p) { return `${slugify(p.name)}-${p.id.replace(/-/g, '').slice(-8)}`; }
+function urlForProduct(id) {
+  const p = products.find(x => x.id === id);
+  return p ? `/producto/${productSlug(p)}` : null;
+}
+function findProductBySlug(slug) { return products.find(x => productSlug(x) === slug); }
+
+/*
+ * DEFAULT_META / setMeta() / updateMetaForPage()
+ * ────────────────────────────────────────────────
+ * Cuando navegamos a un producto por SPA (sin recargar), estas
+ * funciones actualizan title/description/OG/canonical con los
+ * datos de ESE producto, y los restauran al volver al home.
+ *
+ * Esto es un complemento client-side: el caso que realmente
+ * importa para compartir por WhatsApp/redes (el preview del link)
+ * ya lo resuelve api/product.js del lado del servidor, porque esos
+ * crawlers no ejecutan JavaScript.
+ */
+const DEFAULT_META = {
+  title: "JAKAY'U — Tienda de Mates Artesanales en Asunción, Paraguay | Guampas, Termos y Bombillas",
+  description: "JAKAY'U es una tienda de mate artesanal en Asunción, Paraguay: guampas, termos, bombillas y sets de mate. Envíos a todo el país, pedidos por WhatsApp.",
+  ogImage: 'https://fdupxbdch3se0nwv.public.blob.vercel-storage.com/hero/hero-a.jpg',
+  url: 'https://jakay-u.com/',
+};
+function setMeta({ title, description, ogImage, url }) {
+  document.title = title;
+  document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+  document.querySelector('meta[property="og:title"]')?.setAttribute('content', title);
+  document.querySelector('meta[property="og:description"]')?.setAttribute('content', description);
+  document.querySelector('meta[property="og:url"]')?.setAttribute('content', url);
+  document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', title);
+  document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', description);
+  if (ogImage) {
+    document.querySelector('meta[property="og:image"]')?.setAttribute('content', ogImage);
+    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', ogImage);
+  }
+  document.querySelector('link[rel="canonical"]')?.setAttribute('href', url);
+}
+function updateMetaForPage(page, id) {
+  if (page === 'product') {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    setMeta({
+      title: `${p.name} | JAKAY'U — Tienda de Mates en Paraguay`,
+      description: p.description ? p.description.replace(/\s+/g, ' ').trim().slice(0, 160) : `Comprá ${p.name} en JAKAY'U, tienda de mate artesanal en Asunción, Paraguay.`,
+      ogImage: p.img || DEFAULT_META.ogImage,
+      url: `https://jakay-u.com${urlForProduct(id)}`,
+    });
+  } else {
+    setMeta(DEFAULT_META);
+  }
+}
+
+/*
+ * showPage(page, id, fromHistory)
+ * ────────────────────────────────
  * Navega a una página específica.
  *
  * Parámetros:
- *   page → nombre de la página: 'home', 'product', 'cart', 'checkout'
- *   id   → (solo para 'product') ID del producto a mostrar
+ *   page         → nombre de la página: 'home', 'product', 'cart', 'checkout'
+ *   id           → (solo para 'product') ID del producto a mostrar
+ *   fromHistory  → true cuando la llamada viene de popstate (back/forward)
+ *                  o de la carga inicial de la página: en ese caso la URL
+ *                  ya es la correcta y NO hay que tocar el historial.
  *
  * Lo que hace:
  *   1. Oculta todas las páginas (quita clase 'active')
@@ -1384,8 +1527,10 @@ function updateBadge() { document.getElementById('cart-count').textContent = car
  *   3. Muestra la página pedida (agrega clase 'active')
  *   4. Sube el scroll al inicio
  *   5. Si corresponde, renderiza el contenido de esa página
+ *   6. Actualiza la URL (solo home y product tienen URL propia) y
+ *      los meta tags de la página para reflejar el producto activo
  */
-function showPage(page, id) {
+function showPage(page, id, fromHistory) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('cat-nav').style.display = page === 'home' ? '' : 'none';
   document.getElementById('page-' + page).classList.add('active');
@@ -1393,7 +1538,31 @@ function showPage(page, id) {
   if (page === 'product')  renderProductDetail(id);
   if (page === 'cart')     renderCart();
   if (page === 'checkout') renderCheckout();
+
+  if (!fromHistory) {
+    const url = page === 'product' ? urlForProduct(id) : '/';
+    if (url && location.pathname !== url) history.pushState({ page, id }, '', url);
+  }
+  updateMetaForPage(page, id);
 }
+
+/*
+ * handlePopState()
+ * ────────────────
+ * Se dispara cuando el usuario usa los botones atrás/adelante
+ * del navegador. Lee la URL actual y muestra la página que
+ * corresponde, sin volver a tocar el historial (fromHistory=true).
+ */
+function handlePopState() {
+  const path = location.pathname;
+  if (path.startsWith('/producto/')) {
+    const slug = decodeURIComponent(path.replace(/^\/producto\//, '').replace(/\/$/, ''));
+    const p = findProductBySlug(slug);
+    if (p) { showPage('product', p.id, true); return; }
+  }
+  showPage('home', null, true);
+}
+window.addEventListener('popstate', handlePopState);
 
 
 /* ════════════════════════════════════════════════════════════
@@ -1981,7 +2150,7 @@ function newOrder() {
 
   document.addEventListener('DOMContentLoaded', () => {
     const slides = Array.from(document.querySelectorAll('.carousel-slide'));
-    const total  = slides.length; // Total de imágenes (4)
+    const total  = slides.length; // Total de imágenes (3)
 
     // Activamos el primer slide al inicio
     slides[0].classList.add('active');
@@ -2107,6 +2276,17 @@ async function init() {
   renderCategoryNav();
   renderProducts();
   updateBadge();
+
+  // Enrutamiento inicial: si entraron directo a /producto/:slug
+  // (por ejemplo desde un link compartido en WhatsApp), mostramos
+  // ese producto en vez del catálogo.
+  const path = location.pathname;
+  if (path.startsWith('/producto/')) {
+    const slug = decodeURIComponent(path.replace(/^\/producto\//, '').replace(/\/$/, ''));
+    const p = findProductBySlug(slug);
+    if (p) showPage('product', p.id, true);
+    else history.replaceState(null, '', '/');
+  }
   // Ocultar splash: mínimo 2s para que la animación CSS termine; si Notion tardó más, ocultar ya
   const wait = Math.max(0, 2000 - (Date.now() - t0));
   setTimeout(() => {

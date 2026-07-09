@@ -1,1 +1,11 @@
-{}
+{
+  "functions": {
+    "api/product.js": {
+      "includeFiles": "index.html"
+    }
+  },
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/producto/:slug", "destination": "/api/product?slug=:slug" }
+  ]
+}
