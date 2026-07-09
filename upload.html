@@ -530,14 +530,26 @@ async function uploadImg(file) {
   currentImgs.push(null);
   renderImgPreviews();
   try {
-    const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-      method: 'POST', body: file,
-      headers: adminHeaders({ 'Content-Type': file.type || 'application/octet-stream' }),
+    // Paso 1: pedirle al servidor una URL firmada para este archivo
+    // (el servidor nunca ve el contenido del archivo, solo el nombre)
+    const signRes = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+      method: 'POST',
+      headers: adminHeaders(),
     });
-    if (res.status === 401) sessionStorage.removeItem('adminPassword');
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error);
-    currentImgs[idx] = d.url;
+    if (signRes.status === 401) sessionStorage.removeItem('adminPassword');
+    const signed = await signRes.json();
+    if (!signRes.ok) throw new Error(signed.error);
+
+    // Paso 2: subir el archivo directo a R2 con esa URL firmada
+    // (no pasa por nuestro servidor, así que no hay límite de tamaño)
+    const putRes = await fetch(signed.uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': signed.contentType },
+    });
+    if (!putRes.ok) throw new Error('No se pudo subir el archivo a R2');
+
+    currentImgs[idx] = signed.publicUrl;
   } catch (e) {
     currentImgs.splice(idx, 1);
     showToast('Error al subir imagen: ' + e.message, true);

@@ -1,33 +1,39 @@
 /*
  * ============================================================
- *  api/upload.js  —  Subida de archivos a Cloudflare R2
+ *  api/upload.js  —  URL firmada para subir a Cloudflare R2
  * ============================================================
  *
  *  ¿QUÉ HACE ESTE ARCHIVO?
- *  Permite subir imágenes desde el navegador (página upload.html)
- *  a Cloudflare R2, un servicio de almacenamiento de archivos
- *  compatible con S3 (sin costo por transferencia de salida).
+ *  Genera una URL temporal ("presigned URL") que le permite al
+ *  navegador subir un archivo DIRECTO a Cloudflare R2, sin que
+ *  el archivo pase por esta función.
  *
- *  ¿POR QUÉ NO SUBIMOS DIRECTO DESDE EL NAVEGADOR?
+ *  ¿POR QUÉ DIRECTO Y NO A TRAVÉS DEL SERVIDOR?
+ *  Las funciones de Vercel tienen un límite de tamaño de
+ *  request (~4.5MB). Las fotos de celular suelen pesar más que
+ *  eso, así que si el archivo pasara por acá, subidas grandes
+ *  fallarían. Subiendo directo del navegador a R2 no hay ese
+ *  límite.
+ *
+ *  ¿POR QUÉ NO SUBIMOS DIRECTO SIN PASAR POR AQUÍ TAMPOCO?
  *  Las credenciales de acceso a R2 (R2_ACCESS_KEY_ID /
  *  R2_SECRET_ACCESS_KEY) deben mantenerse en el servidor. Si las
  *  ponemos en el navegador, cualquier persona podría verlas y
- *  subir archivos a nuestra cuenta.
+ *  subir archivos a nuestra cuenta. Por eso esta función genera
+ *  una URL firmada que solo sirve para subir UN archivo puntual
+ *  y vence a los pocos minutos.
  *
  *  FLUJO COMPLETO:
  *    1. Usuario elige un archivo en upload.html
- *    2. El navegador lo manda con POST a /api/upload?filename=foto.jpg
- *    3. Este servidor recibe el archivo y lo sube a R2
- *    4. Este servidor arma la URL pública (R2_PUBLIC_URL + nombre)
- *    5. Este servidor le manda esa URL de vuelta al navegador
- *    6. El usuario copia la URL y la pega en Notion
- *
- *  CÓMO LLAMAR A ESTE ENDPOINT:
- *    POST /api/upload?filename=mi-foto.jpg
- *    Body: el contenido binario del archivo
+ *    2. El navegador pide una URL firmada:
+ *       POST /api/upload?filename=foto.jpg
+ *    3. Este servidor responde con { uploadUrl, publicUrl }
+ *    4. El navegador hace PUT directo a uploadUrl con el archivo
+ *    5. El navegador guarda publicUrl y la pega en Notion
  *
  *  RESPUESTA EXITOSA:
- *    { "url": "https://pub-xxxx.r2.dev/mi-foto-a3x9k2.jpg", "filename": "mi-foto-a3x9k2.jpg" }
+ *    { "uploadUrl": "https://...cloudflarestorage.com/...&Signature=...",
+ *      "publicUrl": "https://pub-xxxx.r2.dev/mi-foto-a3x9k2.jpg" }
  *
  *  VARIABLES DE ENTORNO NECESARIAS:
  *    R2_ENDPOINT           → https://<account_id>.r2.cloudflarestorage.com
@@ -40,6 +46,7 @@
 
 const crypto = require('crypto');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { checkAdminPassword } = require('./_auth');
 
 const CONTENT_TYPES = {
@@ -59,53 +66,20 @@ const s3 = new S3Client({
 });
 
 /*
- * readBody(req)
- * ─────────────
- * Función auxiliar para leer el contenido binario del archivo
- * que viene en el cuerpo (body) de la petición HTTP.
- *
- * ¿Por qué no leemos req directamente?
- * Los datos llegan en pedazos (chunks) por la red, no todos
- * de una vez. Esta función espera a que lleguen todos los
- * pedazos, los junta en un Buffer (bloque de bytes) y lo
- * devuelve completo.
- *
- * Devuelve: Promise<Buffer> — el archivo completo en memoria
- */
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = []; // Array donde vamos acumulando los pedazos
-
-    // Cada vez que llega un pedazo del archivo, lo guardamos
-    req.on('data', chunk => chunks.push(chunk));
-
-    // Cuando terminaron de llegar todos los pedazos,
-    // los unimos en un solo Buffer y resolvemos la Promise
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-
-    // Si ocurre un error de red, rechazamos la Promise
-    req.on('error', reject);
-  });
-}
-
-
-/*
  * handler(req, res)
  * ─────────────────
  * Función principal que Vercel ejecuta cuando alguien hace
- * POST a /api/upload.
+ * POST a /api/upload. Devuelve una URL firmada, no sube nada.
  */
 module.exports = async function handler(req, res) {
 
   // ── Verificar que sea un POST ──────────────────────────────
-  // Este endpoint solo acepta POST (subida de archivos).
-  // Si alguien intenta GET, PUT, etc., rechazamos con error 405.
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   // ── Verificar contraseña de administrador ──────────────────
-  // Solo el panel admin (upload.html) puede subir archivos.
+  // Solo el panel admin (upload.html) puede pedir URLs de subida.
   // La contraseña viaja en el header 'x-admin-password' y se
   // compara (en tiempo constante) contra ADMIN_PASSWORD.
   if (!checkAdminPassword(req)) {
@@ -115,46 +89,39 @@ module.exports = async function handler(req, res) {
   // ── Verificar que venga el nombre del archivo ──────────────
   // El nombre del archivo se manda como parámetro en la URL:
   //   /api/upload?filename=mi-guampa.jpg
-  // Lo necesitamos para saber con qué nombre guardar el archivo
-  // y para validar la extensión.
   const filename = req.query.filename;
   if (!filename) return res.status(400).json({ error: 'Falta el parámetro filename' });
 
   // ── Validar la extensión del archivo ──────────────────────
   // Solo permitimos ciertos tipos de archivo por seguridad.
-  // Extraemos la extensión (lo que está después del último punto).
-  // Ej: "foto.jpg" → "jpg"
   const ext = filename.split('.').pop().toLowerCase();
   if (!CONTENT_TYPES[ext]) {
     return res.status(400).json({ error: `Extensión no permitida: .${ext}` });
   }
 
   try {
-    // ── Leer el archivo completo de la petición ────────────
-    // Esperamos a recibir todos los datos del archivo
-    const buffer = await readBody(req);
-
-    // ── Subir el archivo a R2 ───────────────────────────────
     // Le agregamos un sufijo aleatorio al nombre para evitar
     // conflictos si subís dos archivos con el mismo nombre.
     // Ej: "guampa.jpg" se guarda como "guampa-a3x9k2.jpg"
     const base = filename.slice(0, -(ext.length + 1)).replace(/[^a-zA-Z0-9_-]/g, '_');
     const key = `${base}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
 
-    await s3.send(new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: CONTENT_TYPES[ext],
-    }));
+    // URL firmada válida por 5 minutos: solo permite subir
+    // ese archivo puntual (Key + ContentType fijos).
+    const uploadUrl = await getSignedUrl(
+      s3,
+      new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET,
+        Key: key,
+        ContentType: CONTENT_TYPES[ext],
+      }),
+      { expiresIn: 300 }
+    );
 
-    // ── Devolver la URL al navegador ───────────────────────
-    const url = `${process.env.R2_PUBLIC_URL}/${key}`;
-    res.json({ url, filename: key });
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+    res.json({ uploadUrl, publicUrl, contentType: CONTENT_TYPES[ext] });
 
   } catch (err) {
-    // Si algo falló (R2 caído, credenciales inválidas, archivo muy grande, etc.),
-    // logueamos el error en Vercel y devolvemos error 500
     console.error(err);
     res.status(500).json({ error: err.message });
   }
