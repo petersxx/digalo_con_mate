@@ -1,24 +1,24 @@
 /*
  * ============================================================
- *  api/upload.js  —  Subida de archivos a Vercel Blob
+ *  api/upload.js  —  Subida de archivos a Cloudflare R2
  * ============================================================
  *
  *  ¿QUÉ HACE ESTE ARCHIVO?
- *  Permite subir imágenes y modelos 3D (.glb) desde el
- *  navegador (página upload.html) a Vercel Blob, que es el
- *  servicio de almacenamiento de archivos de Vercel.
+ *  Permite subir imágenes desde el navegador (página upload.html)
+ *  a Cloudflare R2, un servicio de almacenamiento de archivos
+ *  compatible con S3 (sin costo por transferencia de salida).
  *
  *  ¿POR QUÉ NO SUBIMOS DIRECTO DESDE EL NAVEGADOR?
- *  El token de acceso a Vercel Blob (BLOB_READ_WRITE_TOKEN)
- *  debe mantenerse en el servidor. Si lo ponemos en el
- *  navegador, cualquier persona podría verlo y subir archivos
- *  a nuestra cuenta.
+ *  Las credenciales de acceso a R2 (R2_ACCESS_KEY_ID /
+ *  R2_SECRET_ACCESS_KEY) deben mantenerse en el servidor. Si las
+ *  ponemos en el navegador, cualquier persona podría verlas y
+ *  subir archivos a nuestra cuenta.
  *
  *  FLUJO COMPLETO:
  *    1. Usuario elige un archivo en upload.html
  *    2. El navegador lo manda con POST a /api/upload?filename=foto.jpg
- *    3. Este servidor recibe el archivo y lo sube a Vercel Blob
- *    4. Vercel Blob devuelve una URL pública permanente
+ *    3. Este servidor recibe el archivo y lo sube a R2
+ *    4. Este servidor arma la URL pública (R2_PUBLIC_URL + nombre)
  *    5. Este servidor le manda esa URL de vuelta al navegador
  *    6. El usuario copia la URL y la pega en Notion
  *
@@ -27,14 +27,36 @@
  *    Body: el contenido binario del archivo
  *
  *  RESPUESTA EXITOSA:
- *    { "url": "https://...vercel-storage.com/mi-foto.jpg", "filename": "mi-foto.jpg" }
+ *    { "url": "https://pub-xxxx.r2.dev/mi-foto-a3x9k2.jpg", "filename": "mi-foto-a3x9k2.jpg" }
+ *
+ *  VARIABLES DE ENTORNO NECESARIAS:
+ *    R2_ENDPOINT           → https://<account_id>.r2.cloudflarestorage.com
+ *    R2_ACCESS_KEY_ID
+ *    R2_SECRET_ACCESS_KEY
+ *    R2_BUCKET             → nombre del bucket (ej: jakayu-media)
+ *    R2_PUBLIC_URL         → URL pública del bucket (r2.dev o dominio propio)
  * ============================================================
  */
 
-// Importamos la función "put" de la librería oficial de Vercel Blob.
-// "put" sube un archivo y devuelve su URL pública.
-const { put } = require('@vercel/blob');
+const crypto = require('crypto');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { checkAdminPassword } = require('./_auth');
 
+const CONTENT_TYPES = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+};
+
+const s3 = new S3Client({
+  region: 'auto',
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
+});
 
 /*
  * readBody(req)
@@ -85,15 +107,14 @@ module.exports = async function handler(req, res) {
   // ── Verificar contraseña de administrador ──────────────────
   // Solo el panel admin (upload.html) puede subir archivos.
   // La contraseña viaja en el header 'x-admin-password' y se
-  // compara contra la variable de entorno ADMIN_PASSWORD.
-  const pw = req.headers['x-admin-password'];
-  if (!pw || pw !== process.env.ADMIN_PASSWORD) {
+  // compara (en tiempo constante) contra ADMIN_PASSWORD.
+  if (!checkAdminPassword(req)) {
     return res.status(401).json({ error: 'No autorizado' });
   }
 
   // ── Verificar que venga el nombre del archivo ──────────────
   // El nombre del archivo se manda como parámetro en la URL:
-  //   /api/upload?filename=mi-guampa.glb
+  //   /api/upload?filename=mi-guampa.jpg
   // Lo necesitamos para saber con qué nombre guardar el archivo
   // y para validar la extensión.
   const filename = req.query.filename;
@@ -104,16 +125,7 @@ module.exports = async function handler(req, res) {
   // Extraemos la extensión (lo que está después del último punto).
   // Ej: "foto.jpg" → "jpg"
   const ext = filename.split('.').pop().toLowerCase();
-  const allowed = [
-    'glb',  // Modelos 3D (para model-viewer)
-    'gltf', // Modelos 3D (formato alternativo)
-    'jpg',  // Imágenes JPEG
-    'jpeg', // Imágenes JPEG (extensión alternativa)
-    'png',  // Imágenes PNG (con transparencia)
-    'webp', // Imágenes WebP (formato moderno, más liviano)
-  ];
-
-  if (!allowed.includes(ext)) {
+  if (!CONTENT_TYPES[ext]) {
     return res.status(400).json({ error: `Extensión no permitida: .${ext}` });
   }
 
@@ -122,26 +134,26 @@ module.exports = async function handler(req, res) {
     // Esperamos a recibir todos los datos del archivo
     const buffer = await readBody(req);
 
-    // ── Subir el archivo a Vercel Blob ─────────────────────
-    // "put" recibe el nombre, el contenido y opciones:
-    //   access: 'public' → la URL generada será accesible por cualquiera
-    //     (necesario para que las imágenes se muestren en la web y para
-    //      que model-viewer pueda cargar los .glb)
-    //   addRandomSuffix: true → agrega un sufijo aleatorio al nombre
-    //     para evitar conflictos si subís dos archivos con el mismo nombre.
-    //     Ej: "guampa.glb" se guarda como "guampa-a3x9k2.glb"
-    const blob = await put(filename, buffer, {
-      access: 'public',
-      addRandomSuffix: true,
-    });
+    // ── Subir el archivo a R2 ───────────────────────────────
+    // Le agregamos un sufijo aleatorio al nombre para evitar
+    // conflictos si subís dos archivos con el mismo nombre.
+    // Ej: "guampa.jpg" se guarda como "guampa-a3x9k2.jpg"
+    const base = filename.slice(0, -(ext.length + 1)).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const key = `${base}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
+
+    await s3.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: CONTENT_TYPES[ext],
+    }));
 
     // ── Devolver la URL al navegador ───────────────────────
-    // blob.url  → URL completa y permanente del archivo subido
-    // blob.pathname → ruta relativa dentro del Blob store
-    res.json({ url: blob.url, filename: blob.pathname });
+    const url = `${process.env.R2_PUBLIC_URL}/${key}`;
+    res.json({ url, filename: key });
 
   } catch (err) {
-    // Si algo falló (Blob caído, token inválido, archivo muy grande, etc.),
+    // Si algo falló (R2 caído, credenciales inválidas, archivo muy grande, etc.),
     // logueamos el error en Vercel y devolvemos error 500
     console.error(err);
     res.status(500).json({ error: err.message });

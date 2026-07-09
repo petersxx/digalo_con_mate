@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@vercel/blob": "^2.4.1",
+    "@aws-sdk/client-s3": "^3.1083.0",
     "vercel": "^54.14.2"
   }
 }

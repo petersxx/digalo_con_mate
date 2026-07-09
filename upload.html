@@ -121,11 +121,6 @@
     .img-remove { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,.75); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .img-uploading { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; font-size: 18px; }
 
-    /* Model upload row */
-    .model-row { display: flex; gap: 8px; align-items: flex-end; }
-    .model-row input { flex: 1; }
-    .btn-upload-model { background: var(--border2); border: none; color: var(--accent); padding: 9px 13px; border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
-    .btn-upload-model:hover { background: var(--border); }
 
     /* ── Drawer buttons ── */
     .btn-save { flex: 1; background: var(--accent); color: #1a0f0a; border: none; padding: 12px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background .15s; }
@@ -245,15 +240,6 @@
         <small>.jpg · .png · .webp — podés subir varias</small>
       </div>
       <div class="img-previews" id="img-previews"></div>
-    </div>
-
-    <div class="field">
-      <label>Modelo 3D (.glb)</label>
-      <div class="model-row">
-        <input type="text" id="prod-model" placeholder="https://...vercel-storage.com/modelo.glb">
-        <input type="file" id="model-input" accept=".glb,.gltf" style="display:none">
-        <button class="btn-upload-model" onclick="document.getElementById('model-input').click()">↑ Subir</button>
-      </div>
     </div>
 
     <div class="divider"></div>
@@ -513,7 +499,6 @@ function openProductForm(id) {
   document.getElementById('prod-price-old').value = p?.priceOld     || '';
   document.getElementById('prod-stock').value     = p?.stock ?? '';
   document.getElementById('prod-desc').value      = p?.description  || '';
-  document.getElementById('prod-model').value     = p?.model        || '';
   document.getElementById('prod-disponible').checked = p ? p.disponible : true;
   document.getElementById('prod-destacado').checked  = p?.destacado || false;
   document.getElementById('prod-cat').value = p?.categoryId || '';
@@ -560,23 +545,6 @@ async function uploadImg(file) {
   renderImgPreviews();
 }
 
-async function uploadModel(file) {
-  showToast('Subiendo modelo 3D…');
-  try {
-    const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
-      method: 'POST', body: file,
-      headers: adminHeaders({ 'Content-Type': file.type || 'application/octet-stream' }),
-    });
-    if (res.status === 401) sessionStorage.removeItem('adminPassword');
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error);
-    document.getElementById('prod-model').value = d.url;
-    showToast('Modelo subido');
-  } catch (e) {
-    showToast('Error al subir modelo: ' + e.message, true);
-  }
-}
-
 async function saveProduct() {
   const id    = document.getElementById('prod-id').value;
   const name  = document.getElementById('prod-name').value.trim();
@@ -598,7 +566,6 @@ async function saveProduct() {
       stock:       stockVal !== '' ? parseInt(stockVal) : null,
       badge:       document.getElementById('prod-badge').value.trim() || null,
       description: document.getElementById('prod-desc').value.trim(),
-      model:       document.getElementById('prod-model').value.trim() || null,
       disponible:  document.getElementById('prod-disponible').checked,
       destacado:   document.getElementById('prod-destacado').checked,
       imgs:        currentImgs.filter(Boolean),
@@ -714,12 +681,6 @@ document.addEventListener('DOMContentLoaded', () => {
   imgInput.addEventListener('change', () => {
     [...imgInput.files].forEach(uploadImg);
     imgInput.value = '';
-  });
-
-  // Modelo 3D — upload
-  document.getElementById('model-input').addEventListener('change', e => {
-    if (e.target.files[0]) uploadModel(e.target.files[0]);
-    e.target.value = '';
   });
 
   // Cerrar drawer con Escape

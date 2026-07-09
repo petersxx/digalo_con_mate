@@ -147,7 +147,6 @@ module.exports = async function handler(req, res) {
         badge:       p.Badge?.rich_text[0]?.plain_text          || null, // Etiqueta (ej: "Más vendido")
         img,                                                           // Primera imagen (para la grilla)
         imgs,                                                          // Todas las imágenes (para la galería del detalle)
-        model:       p['Modelo 3D']?.url                        || null, // URL del modelo .glb (opcional)
         destacado:   p.Destacado?.checkbox                      || false, // ¿Aparece destacado?
         stock:       p.Stock?.number                            ?? null,  // Unidades disponibles (null = sin control)
         priceOld:    p['Precio anterior']?.number               || null,  // Precio original antes del descuento

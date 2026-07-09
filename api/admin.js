@@ -1,3 +1,5 @@
+const { checkAdminPassword } = require('./_auth');
+
 const CAT_DB  = '388459f1-13f9-81ff-8fdb-dd059d486bfe';
 const PROD_DB = '388459f1-13f9-813d-927f-dab6a371335f';
 
@@ -51,8 +53,7 @@ async function notionUpdate(pageId, properties, archived) {
 }
 
 function checkAuth(req, res) {
-  const pw = req.headers['x-admin-password'];
-  if (!pw || pw !== process.env.ADMIN_PASSWORD) {
+  if (!checkAdminPassword(req)) {
     res.status(401).json({ error: 'No autorizado' });
     return false;
   }
@@ -90,7 +91,6 @@ function parseProduct(r) {
     destacado:   p.Destacado?.checkbox                 ?? false,
     imgs,
     img:         imgs[0] || null,
-    model:       p['Modelo 3D']?.url                   || null,
   };
 }
 
@@ -135,8 +135,6 @@ function productToNotion(data) {
         external: { url },
       })),
     };
-  if ('model' in data)
-    props['Modelo 3D'] = { url: data.model || null };
   return props;
 }
 
