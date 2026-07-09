@@ -157,12 +157,12 @@ module.exports = async function handler(req, res) {
     // ── PASO 4: Enviar respuesta al navegador ────────────────
     //
     // Cache-Control le dice a Vercel que guarde esta respuesta
-    // en caché durante 60 segundos. Durante ese tiempo, si otro
+    // en caché durante 10 segundos. Durante ese tiempo, si otro
     // usuario visita la web, Vercel le da la respuesta guardada
     // sin volver a consultar Notion (más rápido).
-    // Después de 60s, sirve la caché mientras renueva en segundo plano
-    // (stale-while-revalidate=300 = hasta 5 minutos).
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
+    // Después de 10s, sirve la caché mientras renueva en segundo plano
+    // (stale-while-revalidate=50 = hasta 1 minuto).
+    res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate=50');
 
     // Enviamos las categorías y productos juntos en un solo JSON
     res.json({ categories, products });
