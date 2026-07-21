@@ -21,17 +21,26 @@ function slugify(str) {
 }
 
 async function notionQuery(dbId, body = {}) {
-  const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.NOTION_TOKEN}`,
-      'Notion-Version': '2022-06-28',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`Notion error ${res.status}`);
-  return res.json();
+  // Recorre todas las páginas de resultados de Notion (100 por página)
+  // para que el sitemap incluya todos los productos del catálogo.
+  const results = [];
+  let cursor;
+  do {
+    const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NOTION_TOKEN}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(cursor ? { ...body, start_cursor: cursor } : body),
+    });
+    if (!res.ok) throw new Error(`Notion error ${res.status}`);
+    const d = await res.json();
+    results.push(...d.results);
+    cursor = d.has_more ? d.next_cursor : null;
+  } while (cursor);
+  return { results };
 }
 
 module.exports = async function handler(req, res) {

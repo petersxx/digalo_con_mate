@@ -43,26 +43,38 @@ const PROD_DB = '388459f1-13f9-813d-927f-dab6a371335f'; // Base "Productos"
  * el código.
  */
 async function notionQuery(dbId, body = {}) {
-  const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
-    method: 'POST',
-    headers: {
-      // El token se lee de las variables de entorno de Vercel,
-      // nunca lo escribas directamente en el código
-      'Authorization': `Bearer ${process.env.NOTION_TOKEN}`,
+  // Notion devuelve los resultados de a páginas de 100 como máximo.
+  // Si hay más, la respuesta trae has_more=true y un next_cursor que
+  // hay que mandar en la siguiente consulta (start_cursor). Este loop
+  // junta todas las páginas para que ningún producto quede afuera.
+  const results = [];
+  let cursor;
+  do {
+    const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
+      method: 'POST',
+      headers: {
+        // El token se lee de las variables de entorno de Vercel,
+        // nunca lo escribas directamente en el código
+        'Authorization': `Bearer ${process.env.NOTION_TOKEN}`,
 
-      // Versión de la API de Notion que estamos usando
-      'Notion-Version': '2022-06-28',
+        // Versión de la API de Notion que estamos usando
+        'Notion-Version': '2022-06-28',
 
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(cursor ? { ...body, start_cursor: cursor } : body),
+    });
 
-  // Si Notion responde con un error (ej: token inválido, DB no encontrada),
-  // lanzamos una excepción para detener la ejecución y devolver error al cliente
-  if (!res.ok) throw new Error(`Notion error ${res.status}`);
+    // Si Notion responde con un error (ej: token inválido, DB no encontrada),
+    // lanzamos una excepción para detener la ejecución y devolver error al cliente
+    if (!res.ok) throw new Error(`Notion error ${res.status}`);
 
-  return res.json();
+    const d = await res.json();
+    results.push(...d.results);
+    cursor = d.has_more ? d.next_cursor : null;
+  } while (cursor);
+
+  return { results };
 }
 
 
